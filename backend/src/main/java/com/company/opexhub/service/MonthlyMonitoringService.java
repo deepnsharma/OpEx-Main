@@ -52,6 +52,7 @@ public class MonthlyMonitoringService {
         entry.setAchievedValue(entryDetails.getAchievedValue());
         entry.setRemarks(entryDetails.getRemarks());
         entry.setMonitoringMonth(entryDetails.getMonitoringMonth());
+        entry.setCategory(entryDetails.getCategory());
         
         return monthlyMonitoringRepository.save(entry);
     }

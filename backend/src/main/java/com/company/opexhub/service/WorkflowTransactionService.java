@@ -64,11 +64,23 @@ public class WorkflowTransactionService {
         dto.setCreatedAt(transaction.getCreatedAt());
         dto.setUpdatedAt(transaction.getUpdatedAt());
         
+        // Get initiative details
+        Optional<Initiative> initiative = initiativeRepository.findById(transaction.getInitiativeId());
+        if (initiative.isPresent()) {
+            Initiative init = initiative.get();
+            dto.setInitiativeNumber(init.getInitiativeNumber());
+            dto.setInitiativeTitle(init.getTitle());
+            dto.setInitiativeStatus(init.getStatus());
+            dto.setExpectedSavings(init.getExpectedSavings());
+            dto.setDescription(init.getDescription());
+        }
+        
         // Get assigned user name if available
         if (transaction.getAssignedUserId() != null) {
             Optional<User> assignedUser = userRepository.findById(transaction.getAssignedUserId());
             if (assignedUser.isPresent()) {
                 dto.setAssignedUserName(assignedUser.get().getFullName());
+                dto.setAssignedUserEmail(assignedUser.get().getEmail());
             }
         }
         
@@ -446,5 +458,73 @@ public class WorkflowTransactionService {
         return stage10Approved.stream()
                 .map(this::convertToDetailDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get initiatives where Stage 6 (Timeline Tracker) is approved and user is assigned as IL
+     */
+    public List<WorkflowTransactionDetailDTO> getInitiativesWithApprovedStage6ForUser(String userEmail, String site) {
+        List<WorkflowTransaction> approvedStage6 = workflowTransactionRepository
+                .findByStageNumberAndApproveStatusAndSite(6, "approved", site);
+        
+        return approvedStage6.stream()
+                .filter(transaction -> userEmail.equals(transaction.getPendingWith()) || 
+                       (transaction.getAssignedUserId() != null && 
+                        userRepository.findById(transaction.getAssignedUserId())
+                                .map(user -> userEmail.equals(user.getEmail()))
+                                .orElse(false)))
+                .map(this::convertToDetailDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get initiatives where Stage 9 (Savings Monitoring) is approved and user is assigned as STLD
+     */
+    public List<WorkflowTransactionDetailDTO> getInitiativesWithApprovedStage9ForUser(String userEmail, String site) {
+        List<WorkflowTransaction> approvedStage9 = workflowTransactionRepository
+                .findByStageNumberAndApproveStatusAndSite(9, "approved", site);
+        
+        return approvedStage9.stream()
+                .filter(transaction -> userEmail.equals(transaction.getPendingWith()) || 
+                       "STLD".equals(transaction.getRequiredRole()))
+                .map(this::convertToDetailDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Check if user has access to Stage 6 (Timeline Tracker) for a specific initiative
+     */
+    public boolean hasTimelineTrackerAccess(Long initiativeId, String userEmail) {
+        Optional<WorkflowTransaction> stage6Transaction = workflowTransactionRepository
+                .findByInitiativeIdAndStageNumber(initiativeId, 6);
+        
+        if (stage6Transaction.isPresent()) {
+            WorkflowTransaction transaction = stage6Transaction.get();
+            // Check if stage 6 is approved and user is assigned as IL
+            if ("approved".equals(transaction.getApproveStatus())) {
+                if (transaction.getAssignedUserId() != null) {
+                    Optional<User> assignedUser = userRepository.findById(transaction.getAssignedUserId());
+                    return assignedUser.map(user -> userEmail.equals(user.getEmail())).orElse(false);
+                }
+                return userEmail.equals(transaction.getPendingWith());
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if user has access to Stage 9 (Savings Monitoring) for a specific initiative
+     */
+    public boolean hasSavingsMonitoringAccess(Long initiativeId, String userEmail, String userRole) {
+        Optional<WorkflowTransaction> stage9Transaction = workflowTransactionRepository
+                .findByInitiativeIdAndStageNumber(initiativeId, 9);
+        
+        if (stage9Transaction.isPresent()) {
+            WorkflowTransaction transaction = stage9Transaction.get();
+            // Check if stage 9 is approved and user has STLD role
+            return "approved".equals(transaction.getApproveStatus()) && 
+                   ("STLD".equals(userRole) || userEmail.equals(transaction.getPendingWith()));
+        }
+        return false;
     }
 }

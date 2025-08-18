@@ -37,6 +37,12 @@ public class MonthlyMonitoringEntry {
     @Column(columnDefinition = "TEXT")
     private String remarks;
     
+    @Column(name = "category")
+    private String category = "General";
+    
+    @Column(name = "deviation_percentage", precision = 5, scale = 2)
+    private BigDecimal deviationPercentage;
+    
     @Column(nullable = false)
     private Boolean isFinalized = false;
     
@@ -83,6 +89,11 @@ public class MonthlyMonitoringEntry {
     private void calculateDeviation() {
         if (targetValue != null && achievedValue != null) {
             deviation = achievedValue.subtract(targetValue);
+            // Calculate deviation percentage
+            if (targetValue.compareTo(BigDecimal.ZERO) != 0) {
+                deviationPercentage = deviation.divide(targetValue, 4, BigDecimal.ROUND_HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+            }
         }
     }
     
@@ -134,4 +145,10 @@ public class MonthlyMonitoringEntry {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+    
+    public BigDecimal getDeviationPercentage() { return deviationPercentage; }
+    public void setDeviationPercentage(BigDecimal deviationPercentage) { this.deviationPercentage = deviationPercentage; }
 }

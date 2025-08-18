@@ -27,6 +27,14 @@ public class WorkflowTransactionDetailDTO {
     private LocalDateTime updatedAt;
     private Boolean isVisible; // Controls stage visibility
     
+    // Initiative details for frontend use
+    private String initiativeNumber;
+    private String initiativeTitle;
+    private String initiativeStatus;
+    private String assignedUserEmail;
+    private java.math.BigDecimal expectedSavings;
+    private String description;
+    
     // Constructors
     public WorkflowTransactionDetailDTO() {}
     
@@ -126,4 +134,22 @@ public class WorkflowTransactionDetailDTO {
 
     public String getCapexNumber() { return capexNumber; }
     public void setCapexNumber(String capexNumber) { this.capexNumber = capexNumber; }
+    
+    public String getInitiativeNumber() { return initiativeNumber; }
+    public void setInitiativeNumber(String initiativeNumber) { this.initiativeNumber = initiativeNumber; }
+    
+    public String getInitiativeTitle() { return initiativeTitle; }
+    public void setInitiativeTitle(String initiativeTitle) { this.initiativeTitle = initiativeTitle; }
+    
+    public String getInitiativeStatus() { return initiativeStatus; }
+    public void setInitiativeStatus(String initiativeStatus) { this.initiativeStatus = initiativeStatus; }
+    
+    public String getAssignedUserEmail() { return assignedUserEmail; }
+    public void setAssignedUserEmail(String assignedUserEmail) { this.assignedUserEmail = assignedUserEmail; }
+    
+    public java.math.BigDecimal getExpectedSavings() { return expectedSavings; }
+    public void setExpectedSavings(java.math.BigDecimal expectedSavings) { this.expectedSavings = expectedSavings; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }
