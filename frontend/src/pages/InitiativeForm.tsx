@@ -145,9 +145,9 @@ export default function InitiativeForm({ user }: InitiativeFormProps) {
           <h1 className="text-3xl font-bold text-foreground">New Initiative</h1>
           <p className="text-muted-foreground">Submit a new operational excellence initiative</p>
         </div>
-        <Badge variant="outline" className="text-sm">
+        {/* <Badge variant="outline" className="text-sm">
           Stage 1: Register Initiative
-        </Badge>
+        </Badge> */}
       </div>
 
       <Form {...form}>

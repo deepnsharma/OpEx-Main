@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, User, Lock, Mail, FlaskConical, Atom } from "lucide-react";
+import { Building2, User, Lock, Mail, LogIn, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -136,66 +136,66 @@ export default function AuthPage({ onLogin }: AuthProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Chemical Background with Molecular Patterns */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-teal-900">
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1611567434239-4319af406477?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHwzfHxtb2xlY3VsZSUyMGJhY2tncm91bmR8ZW58MHx8fGJsdWV8MTc1NTUzNjgwMHww&ixlib=rb-4.1.0&q=85')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
-          }}
-        />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-white relative overflow-hidden">
+      {/* Enhanced Chemical Background */}
+      <div className="absolute inset-0">
+        {/* Glassmorphism Background Layer */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 via-white/40 to-blue-50/30"></div>
         
-        {/* Floating Chemical Molecules Animation */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="molecule-float absolute top-20 left-10 w-4 h-4 bg-cyan-400 rounded-full opacity-60 animate-float"></div>
-          <div className="molecule-float absolute top-40 right-20 w-3 h-3 bg-emerald-400 rounded-full opacity-50 animate-float-delayed"></div>
-          <div className="molecule-float absolute bottom-32 left-1/4 w-5 h-5 bg-blue-400 rounded-full opacity-40 animate-float-slow"></div>
-          <div className="molecule-float absolute bottom-20 right-1/3 w-2 h-2 bg-teal-400 rounded-full opacity-70 animate-float"></div>
-          <div className="molecule-float absolute top-1/3 left-2/3 w-6 h-6 bg-cyan-300 rounded-full opacity-30 animate-float-delayed"></div>
+        {/* Animated Chemical Molecules */}
+        <div className="absolute inset-0">
+          {/* Large molecules */}
+          <div className="absolute top-1/4 left-1/4 w-16 h-16 bg-blue-200/40 rounded-full blur-sm animate-float-molecule"></div>
+          <div className="absolute top-3/4 right-1/4 w-12 h-12 bg-blue-300/30 rounded-full blur-sm animate-float-molecule-delayed"></div>
+          <div className="absolute bottom-1/3 left-1/3 w-20 h-20 bg-blue-100/50 rounded-full blur-sm animate-float-molecule-slow"></div>
           
-          {/* Chemical Bond Lines */}
-          <div className="absolute top-1/4 left-1/4 w-32 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-40 rotate-45 animate-pulse"></div>
-          <div className="absolute bottom-1/3 right-1/4 w-24 h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-50 -rotate-45 animate-pulse"></div>
+          {/* Medium molecules */}
+          <div className="absolute top-1/2 right-1/3 w-8 h-8 bg-blue-400/30 rounded-full blur-sm animate-float-molecule"></div>
+          <div className="absolute bottom-1/4 right-1/2 w-10 h-10 bg-blue-200/40 rounded-full blur-sm animate-float-molecule-delayed"></div>
+          <div className="absolute top-1/6 left-1/2 w-6 h-6 bg-blue-300/35 rounded-full blur-sm animate-float-molecule-slow"></div>
+          
+          {/* Small molecules */}
+          <div className="absolute top-2/3 left-1/6 w-4 h-4 bg-blue-500/25 rounded-full blur-sm animate-float-molecule"></div>
+          <div className="absolute bottom-1/2 right-1/6 w-5 h-5 bg-blue-200/30 rounded-full blur-sm animate-float-molecule-delayed"></div>
+          <div className="absolute top-1/3 right-2/3 w-3 h-3 bg-blue-400/20 rounded-full blur-sm animate-float-molecule-slow"></div>
+          
+          {/* Molecular bonds/connections */}
+          <div className="absolute top-1/4 left-1/4 w-32 h-0.5 bg-gradient-to-r from-transparent via-blue-300/30 to-transparent rotate-45 animate-pulse-bond"></div>
+          <div className="absolute bottom-1/3 right-1/3 w-24 h-0.5 bg-gradient-to-r from-transparent via-blue-200/40 to-transparent -rotate-12 animate-pulse-bond-delayed"></div>
+          <div className="absolute top-2/3 left-1/2 w-28 h-0.5 bg-gradient-to-r from-transparent via-blue-400/25 to-transparent rotate-12 animate-pulse-bond"></div>
+          <div className="absolute bottom-1/2 left-1/6 w-20 h-0.5 bg-gradient-to-r from-transparent via-blue-300/35 to-transparent -rotate-45 animate-pulse-bond-delayed"></div>
         </div>
+        
+        {/* Glassmorphism overlay */}
+        <div className="absolute inset-0 backdrop-blur-[0.5px] bg-white/10"></div>
       </div>
       
-      {/* Glassmorphism Container */}
-      <div className="relative w-full max-w-md mx-4">
-        <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
-          <CardHeader className="text-center pb-6">
-            {/* Logo Section with Chemical Flask Icon */}
-            <div className="flex items-center justify-center mb-6">
-              <div className="relative">
+      {/* Main Login Container with Glassmorphism */}
+      <div className="relative w-full max-w-lg mx-4 z-10">
+        <Card className="bg-white/80 backdrop-blur-xl shadow-2xl border border-white/50 animate-fade-in">
+          <CardHeader className="text-center pb-8">
+            {/* Logo Section */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="relative animate-slide-down">
                 <img
                   src="https://www.godeepak.com/wp-content/uploads/2024/01/DNL-Logo.png"
                   alt="DNL Logo"
-                  className="h-16 w-auto drop-shadow-lg"
+                  className="h-16 w-auto"
                 />
-                <div className="absolute -top-2 -right-2">
-                  <FlaskConical className="w-6 h-6 text-cyan-400 animate-pulse" />
-                </div>
               </div>
             </div>
             
-            {/* Title Section with Chemical Theme */}
-            <div className="mb-6">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Atom className="w-6 h-6 text-emerald-400 animate-spin-slow" />
-                <h2 className="text-2xl font-bold text-white">OpEx Hub</h2>
-                <Atom className="w-6 h-6 text-cyan-400 animate-spin-slow" />
-              </div>
-              <p className="text-sm text-blue-200 opacity-90">Operational Excellence Platform</p>
-              <div className="w-24 h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent mx-auto mt-3"></div>
+            {/* Title Section */}
+            <div className="mb-6 animate-slide-up">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">OpEx Hub</h1>
+              <p className="text-blue-600 font-medium">Operational Excellence Platform</p>
+              <div className="w-16 h-0.5 bg-blue-500 mx-auto mt-4"></div>
             </div>
             
-            <CardTitle className="text-xl text-white mb-2">
+            <CardTitle className="text-2xl text-gray-900 mb-2">
               {isLogin ? "Sign In" : "Create Account"}
             </CardTitle>
-            <CardDescription className="text-blue-200">
+            <CardDescription className="text-gray-600">
               {isLogin 
                 ? "Enter your credentials to access OpEx Hub" 
                 : "Fill in your details to create your account"
@@ -203,54 +203,54 @@ export default function AuthPage({ onLogin }: AuthProps) {
             </CardDescription>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="animate-fade-in-delayed">
             <Tabs value={isLogin ? "login" : "signup"} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-white/10 backdrop-blur-sm border-white/20">
+              <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100">
                 <TabsTrigger 
                   value="login" 
                   onClick={() => setIsLogin(true)}
-                  className="text-white data-[state=active]:bg-cyan-500/30 data-[state=active]:text-white"
+                  className="text-gray-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white transition-all duration-200"
                 >
-                  <Lock className="w-4 h-4 mr-2" />
+                  <LogIn className="w-4 h-4 mr-2" />
                   Sign In
                 </TabsTrigger>
                 <TabsTrigger 
                   value="signup" 
                   onClick={() => setIsLogin(false)}
-                  className="text-white data-[state=active]:bg-emerald-500/30 data-[state=active]:text-white"
+                  className="text-gray-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white transition-all duration-200"
                 >
-                  <User className="w-4 h-4 mr-2" />
+                  <UserPlus className="w-4 h-4 mr-2" />
                   Sign Up
                 </TabsTrigger>
               </TabsList>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <TabsContent value="login" className="space-y-5 mt-0">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <TabsContent value="login" className="space-y-6 mt-0">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-white font-medium">Email</Label>
+                    <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="Enter your email"
-                          className="pl-10 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-blue-200 focus:border-cyan-400 focus:ring-cyan-400/20"
-                          value={formData.email}
-                          onChange={(e) => handleInputChange("email", e.target.value)}
-                          required
-                        />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-400" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter your email"
+                        className="pl-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-colors duration-200"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        required
+                      />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-white font-medium">Password</Label>
+                    <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-400" />
                       <Input
                         id="password"
                         type="password"
                         placeholder="Enter your password"
-                        className="pl-10 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-blue-200 focus:border-cyan-400 focus:ring-cyan-400/20"
+                        className="pl-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-colors duration-200"
                         value={formData.password}
                         onChange={(e) => handleInputChange("password", e.target.value)}
                         required
@@ -258,24 +258,24 @@ export default function AuthPage({ onLogin }: AuthProps) {
                     </div>
                   </div>
 
-                  <div className="bg-emerald-500/10 backdrop-blur-sm border border-emerald-400/30 rounded-lg p-3">
-                    <p className="text-xs text-emerald-200 flex items-center gap-2">
-                      <FlaskConical className="w-3 h-3" />
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-700 flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
                       Demo credentials: john.lead@company.com / password123
                     </p>
                   </div>
                 </TabsContent>
 
-                <TabsContent value="signup" className="space-y-4 mt-0">
-                  <div className="grid grid-cols-2 gap-3">
+                <TabsContent value="signup" className="space-y-5 mt-0">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="fullName" className="text-white font-medium">Full Name *</Label>
+                      <Label htmlFor="fullName" className="text-gray-700 font-medium">Full Name *</Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-400" />
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-400" />
                         <Input
                           id="fullName"
                           placeholder="John Doe"
-                          className="pl-10 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-blue-200 focus:border-emerald-400 focus:ring-emerald-400/20"
+                          className="pl-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-colors duration-200"
                           value={formData.fullName}
                           onChange={(e) => handleInputChange("fullName", e.target.value)}
                           required={!isLogin}
@@ -284,14 +284,14 @@ export default function AuthPage({ onLogin }: AuthProps) {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-white font-medium">Email *</Label>
+                      <Label htmlFor="email" className="text-gray-700 font-medium">Email *</Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-400" />
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-400" />
                         <Input
                           id="email"
                           type="email"
                           placeholder="john.lead@company.com"
-                          className="pl-10 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-blue-200 focus:border-emerald-400 focus:ring-emerald-400/20"
+                          className="pl-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-colors duration-200"
                           value={formData.email}
                           onChange={(e) => handleInputChange("email", e.target.value)}
                           required
@@ -301,14 +301,14 @@ export default function AuthPage({ onLogin }: AuthProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-white font-medium">Password *</Label>
+                    <Label htmlFor="password" className="text-gray-700 font-medium">Password *</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-emerald-400" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-400" />
                       <Input
                         id="password"
                         type="password"
                         placeholder="Create a password"
-                        className="pl-10 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-blue-200 focus:border-emerald-400 focus:ring-emerald-400/20"
+                        className="pl-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-colors duration-200"
                         value={formData.password}
                         onChange={(e) => handleInputChange("password", e.target.value)}
                         required
@@ -316,16 +316,16 @@ export default function AuthPage({ onLogin }: AuthProps) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-3">
                     <div className="space-y-2">
-                      <Label htmlFor="site" className="text-white font-medium text-xs">Site *</Label>
+                      <Label htmlFor="site" className="text-gray-700 font-medium text-sm">Site *</Label>
                       <Select value={formData.site} onValueChange={(value) => handleInputChange("site", value)}>
-                        <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-emerald-400 focus:ring-emerald-400/20">
+                        <SelectTrigger className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-colors duration-200">
                           <SelectValue placeholder="Site" />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-600">
+                        <SelectContent className="bg-white border-gray-300">
                           {sites.map((site) => (
-                            <SelectItem key={site.code} value={site.code} className="text-white hover:bg-slate-700">
+                            <SelectItem key={site.code} value={site.code} className="hover:bg-blue-50">
                               {site.name}
                             </SelectItem>
                           ))}
@@ -334,14 +334,14 @@ export default function AuthPage({ onLogin }: AuthProps) {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="discipline" className="text-white font-medium text-xs">Discipline *</Label>
+                      <Label htmlFor="discipline" className="text-gray-700 font-medium text-sm">Discipline *</Label>
                       <Select value={formData.discipline} onValueChange={(value) => handleInputChange("discipline", value)}>
-                        <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-emerald-400 focus:ring-emerald-400/20">
+                        <SelectTrigger className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-colors duration-200">
                           <SelectValue placeholder="Discipline" />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-600">
+                        <SelectContent className="bg-white border-gray-300">
                           {disciplines.map((discipline) => (
-                            <SelectItem key={discipline.code} value={discipline.code} className="text-white hover:bg-slate-700">
+                            <SelectItem key={discipline.code} value={discipline.code} className="hover:bg-blue-50">
                               {discipline.name}
                             </SelectItem>
                           ))}
@@ -350,14 +350,14 @@ export default function AuthPage({ onLogin }: AuthProps) {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="role" className="text-white font-medium text-xs">Role *</Label>
+                      <Label htmlFor="role" className="text-gray-700 font-medium text-sm">Role *</Label>
                       <Select value={formData.role} onValueChange={(value) => handleInputChange("role", value)}>
-                        <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-emerald-400 focus:ring-emerald-400/20">
+                        <SelectTrigger className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-colors duration-200">
                           <SelectValue placeholder="Role" />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-600">
+                        <SelectContent className="bg-white border-gray-300">
                           {roles.map((role) => (
-                            <SelectItem key={role.code} value={role.code} className="text-white hover:bg-slate-700">
+                            <SelectItem key={role.code} value={role.code} className="hover:bg-blue-50">
                               {role.name}
                             </SelectItem>
                           ))}
@@ -369,17 +369,17 @@ export default function AuthPage({ onLogin }: AuthProps) {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white font-semibold py-3 transition-all duration-300 transform hover:scale-[1.02] shadow-lg" 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 transition-all duration-200 transform hover:scale-[1.02] shadow-lg" 
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      Please wait...
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Processing...
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      {isLogin ? <Lock className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                      {isLogin ? <LogIn className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
                       {isLogin ? "Sign In" : "Create Account"}
                     </div>
                   )}

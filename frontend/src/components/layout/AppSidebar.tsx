@@ -87,13 +87,13 @@ const navigationItems = [
     url: "/teams",
     icon: Users,
     group: "Management"
-  },
-  {
-    title: "Initiative Closure",
-    url: "/closure",
-    icon: XCircle,
-    group: "Management"
   }
+  // {
+  //   title: "Initiative Closure",
+  //   url: "/closure",
+  //   icon: XCircle,
+  //   group: "Management"
+  // }
 ];
 
 const groupItems = (items: typeof navigationItems) => {

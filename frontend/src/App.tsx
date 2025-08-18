@@ -16,7 +16,7 @@ import NewWorkflow from "./pages/NewWorkflow";
 import KPI from "./pages/KPI";
 import Reports from "./pages/Reports";
 import Teams from "./pages/Teams";
-import Closure from "./pages/Closure";
+// import Closure from "./pages/Closure";
 import TimelineTracker from "./pages/TimelineTracker";
 import MonthlyMonitoring from "./pages/MonthlyMonitoring";
 import NotFound from "./pages/NotFound";
@@ -197,7 +197,7 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      <Route path="/closure" element={
+      {/* <Route path="/closure" element={
         <ProtectedRoute>
           <AppLayout user={user!} onLogout={logout}>
             <ErrorBoundary>
@@ -205,7 +205,7 @@ const AppRoutes = () => {
             </ErrorBoundary>
           </AppLayout>
         </ProtectedRoute>
-      } />
+      } /> */}
       
       <Route path="*" element={<NotFound />} />
     </Routes>
