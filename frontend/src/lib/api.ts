@@ -210,6 +210,12 @@ export const userAPI = {
 
 // Timeline Tracker API
 export const timelineTrackerAPI = {
+  // Get approved initiatives for Stage 6 access
+  getApprovedInitiatives: async (userEmail: string, site: string) => {
+    const response = await api.get(`/timeline-tracker/approved-initiatives/${encodeURIComponent(userEmail)}/${site}`);
+    return response.data;
+  },
+
   getTimelineEntries: async (initiativeId: number) => {
     const response = await api.get(`/timeline-tracker/${initiativeId}`);
     return response.data;
@@ -288,6 +294,12 @@ export const workflowTransactionAPI = {
 
 // Monthly Monitoring API
 export const monthlyMonitoringAPI = {
+  // Get approved initiatives for Stage 9 access
+  getApprovedInitiatives: async (userEmail: string, site: string) => {
+    const response = await api.get(`/monthly-monitoring/approved-initiatives/${encodeURIComponent(userEmail)}/${site}`);
+    return response.data;
+  },
+
   getMonitoringEntries: async (initiativeId: number) => {
     const response = await api.get(`/monthly-monitoring/${initiativeId}`);
     return response.data;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,13 +8,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Edit, Trash2, FileText, TrendingUp, Target, RefreshCw, BarChart3, PieChart, Lock, Filter, Calendar, CheckCircle, AlertTriangle, DollarSign, TrendingDown } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Cell } from 'recharts';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { 
+  Plus, Edit, Trash2, CheckCircle, Clock, AlertTriangle, Lock, Filter, RefreshCw, 
+  FileText, BarChart3, Calendar, TrendingUp, PieChart, Target, DollarSign 
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { workflowTransactionAPI, monthlyMonitoringAPI } from '@/lib/api';
+import { monthlyMonitoringAPI } from '@/lib/api';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart as RechartsPieChart, Cell } from 'recharts';
 
 interface User {
   id: string;
@@ -27,31 +30,29 @@ interface User {
 interface Initiative {
   id: number;
   initiativeNumber: string;
-  title: string;
-  status: string;
+  initiativeTitle: string;
+  initiativeStatus: string;
   site: string;
-  initiativeLead: string;
+  assignedUserEmail: string;
   expectedSavings: number;
   description?: string;
-  currentStage?: number;
+  stageNumber?: number;
 }
 
 interface MonthlyMonitoringEntry {
   id?: number;
-  monitoringMonth: string; // YYYY-MM format
   kpiDescription: string;
+  monitoringMonth: string;
   targetValue: number;
   achievedValue?: number;
   deviation?: number;
   deviationPercentage?: number;
   remarks?: string;
+  category?: string;
   isFinalized: boolean;
   faApproval: boolean;
   faComments?: string;
   enteredBy: string;
-  entryDate?: string;
-  lastModified?: string;
-  category?: string;
 }
 
 interface MonthlyMonitoringProps {
@@ -60,45 +61,40 @@ interface MonthlyMonitoringProps {
 
 export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
   const [selectedInitiativeId, setSelectedInitiativeId] = useState<number | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   const [currentPage, setCurrentPage] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<MonthlyMonitoringEntry | null>(null);
   const [formData, setFormData] = useState<Partial<MonthlyMonitoringEntry>>({});
-  const [activeTab, setActiveTab] = useState('overview');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const itemsPerPage = 6;
 
-  // Fetch initiatives that are approved for Stage 9 (Savings Monitoring)
+  // Fetch initiatives where Stage 9 is approved and user has access
   const { data: approvedInitiatives = [], isLoading: initiativesLoading } = useQuery({
-    queryKey: ['stage9-approved-initiatives', user.site, user.email],
+    queryKey: ['stage9-approved-initiatives', user.email, user.site],
     queryFn: async () => {
       try {
-        // Get initiatives where stage 9 is approved and user is assigned as STLD
-        const response = await workflowTransactionAPI.getPendingBySiteAndRole(user.site, 'STLD');
+        const response = await monthlyMonitoringAPI.getApprovedInitiatives(user.email, user.site);
         
-        // Filter to only show initiatives where stage 9 (Savings Monitoring) is approved
-        // and the current user is the assigned Site Lead
-        const filteredInitiatives = response.filter((transaction: any) => 
-          transaction.stageNumber === 9 && 
-          transaction.status === 'APPROVED' &&
-          transaction.assignedUserEmail === user.email
-        );
-        
-        return filteredInitiatives.map((transaction: any) => ({
-          id: transaction.initiativeId,
-          initiativeNumber: transaction.initiativeNumber,
-          title: transaction.initiativeTitle,
-          status: transaction.initiativeStatus,
-          site: transaction.site,
-          initiativeLead: transaction.assignedUserEmail,
-          expectedSavings: transaction.expectedSavings || 0,
-          description: transaction.description,
-          currentStage: transaction.stageNumber
+        // Map the response to the expected format
+        return response.data.map((item: any) => ({
+          id: item.initiativeId,
+          initiativeNumber: item.initiativeNumber,
+          initiativeTitle: item.initiativeTitle,
+          initiativeStatus: item.initiativeStatus,
+          site: item.site,
+          assignedUserEmail: item.assignedUserEmail || item.pendingWith,
+          expectedSavings: item.expectedSavings || 0,
+          description: item.description,
+          stageNumber: item.stageNumber
         }));
       } catch (error) {
         console.error('Error fetching approved initiatives:', error);
@@ -109,9 +105,9 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
 
   // Filter and search initiatives
   const filteredInitiatives = approvedInitiatives.filter((initiative: Initiative) => {
-    const matchesSearch = initiative.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = initiative.initiativeTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          initiative.initiativeNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'ALL' || initiative.status === filterStatus;
+    const matchesStatus = filterStatus === 'ALL' || initiative.initiativeStatus === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
@@ -133,9 +129,9 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
     enabled: !!selectedInitiativeId,
   });
 
-  // Fetch entries for specific month
+  // Fetch monitoring entries by month
   const { data: monthlyEntries = [], isLoading: monthlyLoading } = useQuery({
-    queryKey: ['monitoring-entries', selectedInitiativeId, selectedMonth],
+    queryKey: ['monitoring-entries-by-month', selectedInitiativeId, selectedMonth],
     queryFn: async () => {
       if (!selectedInitiativeId || !selectedMonth) return [];
       const result = await monthlyMonitoringAPI.getMonitoringEntriesByMonth(selectedInitiativeId, selectedMonth);
@@ -144,23 +140,14 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
     enabled: !!selectedInitiativeId && !!selectedMonth,
   });
 
-  // Mutations
+  // Mutations for monitoring operations
   const createMutation = useMutation({
     mutationFn: async (entry: MonthlyMonitoringEntry) => {
-      const entryWithDeviation = {
+      const result = await monthlyMonitoringAPI.createMonitoringEntry(selectedInitiativeId!, {
         ...entry,
-        deviation: entry.achievedValue && entry.targetValue 
-          ? entry.achievedValue - entry.targetValue 
-          : undefined,
-        deviationPercentage: entry.achievedValue && entry.targetValue 
-          ? ((entry.achievedValue - entry.targetValue) / entry.targetValue) * 100 
-          : undefined,
         enteredBy: user.email,
-        entryDate: new Date().toISOString(),
         initiativeId: selectedInitiativeId
-      };
-      
-      const result = await monthlyMonitoringAPI.createMonitoringEntry(selectedInitiativeId!, entryWithDeviation);
+      });
       return result.data;
     },
     onSuccess: () => {
@@ -181,18 +168,7 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, entry }: { id: number; entry: MonthlyMonitoringEntry }) => {
-      const entryWithDeviation = {
-        ...entry,
-        deviation: entry.achievedValue && entry.targetValue 
-          ? entry.achievedValue - entry.targetValue 
-          : undefined,
-        deviationPercentage: entry.achievedValue && entry.targetValue 
-          ? ((entry.achievedValue - entry.targetValue) / entry.targetValue) * 100 
-          : undefined,
-        lastModified: new Date().toISOString()
-      };
-      
-      const result = await monthlyMonitoringAPI.updateMonitoringEntry(id, entryWithDeviation);
+      const result = await monthlyMonitoringAPI.updateMonitoringEntry(id, entry);
       return result.data;
     },
     onSuccess: () => {
@@ -219,7 +195,7 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['monitoring-entries'] });
-      toast({ title: "Success", description: "Finalization status updated" });
+      toast({ title: "Success", description: "Entry finalization status updated" });
       refetchEntries();
     },
     onError: (error: any) => {
@@ -268,7 +244,7 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
     }
   });
 
-  // Generate chart data with enhanced metrics
+  // Prepare chart data
   const chartData = monitoringEntries.map((entry: MonthlyMonitoringEntry) => ({
     month: entry.monitoringMonth,
     target: entry.targetValue,
@@ -491,7 +467,7 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
       {!selectedInitiativeId ? (
         <div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Your Assigned Initiatives</h2>
+            <h2 className="text-xl font-semibold">Your Assigned Initiatives (Stage 9 Approved)</h2>
             <div className="flex space-x-2">
               <div className="relative">
                 <Input
@@ -519,17 +495,11 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
           {filteredInitiatives.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
-                <Lock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Savings Monitoring Access</h3>
-                <p className="text-muted-foreground mb-4">
-                  You don't have any initiatives assigned for Savings Monitoring (Stage 9).
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Initiatives Available</h3>
+                <p className="text-muted-foreground">
+                  You currently have no initiatives where Stage 9 (Savings Monitoring) has been approved and you are assigned as Site Lead.
                 </p>
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    Savings Monitoring access is granted only after Stage 9 approval and when you are assigned as Site Lead (STLD).
-                  </AlertDescription>
-                </Alert>
               </CardContent>
             </Card>
           ) : (
@@ -545,9 +515,9 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
                       <div className="flex justify-between items-start">
                         <div>
                           <CardTitle className="text-lg line-clamp-2">{initiative.initiativeNumber}</CardTitle>
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{initiative.title}</p>
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{initiative.initiativeTitle}</p>
                         </div>
-                        <Badge variant="outline">{initiative.status}</Badge>
+                        <Badge variant="outline">{initiative.initiativeStatus}</Badge>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -558,7 +528,7 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
                         </div>
                         <div className="flex items-center">
                           <span className="w-16">Lead:</span>
-                          <span className="font-medium">{initiative.initiativeLead}</span>
+                          <span className="font-medium">{initiative.assignedUserEmail}</span>
                         </div>
                         <div className="flex items-center">
                           <span className="w-16">Savings:</span>
@@ -566,7 +536,7 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
                         </div>
                         <div className="flex items-center">
                           <span className="w-16">Stage:</span>
-                          <Badge variant="secondary" className="text-xs">Stage {initiative.currentStage}</Badge>
+                          <Badge variant="secondary" className="text-xs">Stage {initiative.stageNumber || 9}</Badge>
                         </div>
                       </div>
                     </CardContent>
@@ -607,7 +577,7 @@ export default function MonthlyMonitoring({ user }: MonthlyMonitoringProps) {
                 Monitoring for: {approvedInitiatives.find((i: Initiative) => i.id === selectedInitiativeId)?.initiativeNumber}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {approvedInitiatives.find((i: Initiative) => i.id === selectedInitiativeId)?.title}
+                {approvedInitiatives.find((i: Initiative) => i.id === selectedInitiativeId)?.initiativeTitle}
               </p>
             </div>
             <Button variant="outline" onClick={() => setSelectedInitiativeId(null)}>

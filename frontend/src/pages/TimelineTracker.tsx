@@ -16,7 +16,7 @@ import { CalendarIcon, Plus, Edit, Trash2, CheckCircle, Clock, AlertCircle, Lock
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { workflowTransactionAPI, timelineTrackerAPI } from '@/lib/api';
+import { timelineTrackerAPI } from '@/lib/api';
 
 interface User {
   id: string;
@@ -29,13 +29,13 @@ interface User {
 interface Initiative {
   id: number;
   initiativeNumber: string;
-  title: string;
-  status: string;
+  initiativeTitle: string;
+  initiativeStatus: string;
   site: string;
-  initiativeLead: string;
+  assignedUserEmail: string;
   expectedSavings: number;
   description?: string;
-  currentStage?: number;
+  stageNumber?: number;
 }
 
 interface TimelineEntry {
@@ -72,32 +72,24 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
   const queryClient = useQueryClient();
   const itemsPerPage = 6;
 
-  // Fetch initiatives that are approved for Stage 6 (Timeline Tracker)
+  // Fetch initiatives where Stage 6 is approved and user has access
   const { data: approvedInitiatives = [], isLoading: initiativesLoading } = useQuery({
-    queryKey: ['stage6-approved-initiatives', user.site, user.email],
+    queryKey: ['stage6-approved-initiatives', user.email, user.site],
     queryFn: async () => {
       try {
-        // Get initiatives where stage 6 is approved and user is assigned as IL
-        const response = await workflowTransactionAPI.getPendingBySiteAndRole(user.site, 'IL');
+        const response = await timelineTrackerAPI.getApprovedInitiatives(user.email, user.site);
         
-        // Filter to only show initiatives where stage 6 (Timeline Tracker) is approved
-        // and the current user is the assigned Initiative Lead
-        const filteredInitiatives = response.filter((transaction: any) => 
-          transaction.stageNumber === 6 && 
-          transaction.status === 'APPROVED' &&
-          transaction.assignedUserEmail === user.email
-        );
-        
-        return filteredInitiatives.map((transaction: any) => ({
-          id: transaction.initiativeId,
-          initiativeNumber: transaction.initiativeNumber,
-          title: transaction.initiativeTitle,
-          status: transaction.initiativeStatus,
-          site: transaction.site,
-          initiativeLead: transaction.assignedUserEmail,
-          expectedSavings: transaction.expectedSavings || 0,
-          description: transaction.description,
-          currentStage: transaction.stageNumber
+        // Map the response to the expected format
+        return response.data.map((item: any) => ({
+          id: item.initiativeId,
+          initiativeNumber: item.initiativeNumber,
+          initiativeTitle: item.initiativeTitle,
+          initiativeStatus: item.initiativeStatus,
+          site: item.site,
+          assignedUserEmail: item.assignedUserEmail || item.pendingWith,
+          expectedSavings: item.expectedSavings || 0,
+          description: item.description,
+          stageNumber: item.stageNumber
         }));
       } catch (error) {
         console.error('Error fetching approved initiatives:', error);
@@ -108,9 +100,9 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
 
   // Filter and search initiatives
   const filteredInitiatives = approvedInitiatives.filter((initiative: Initiative) => {
-    const matchesSearch = initiative.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = initiative.initiativeTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          initiative.initiativeNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'ALL' || initiative.status === filterStatus;
+    const matchesStatus = filterStatus === 'ALL' || initiative.initiativeStatus === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
@@ -326,11 +318,6 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
     </Popover>
   );
 
-  // Check if user has permission for this initiative
-  const hasPermission = (initiativeEmail: string) => {
-    return user.email === initiativeEmail || user.role === 'IL' || user.role === 'ADMIN';
-  };
-
   if (initiativesLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -479,7 +466,7 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
       {!selectedInitiativeId ? (
         <div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Your Assigned Initiatives</h2>
+            <h2 className="text-xl font-semibold">Your Assigned Initiatives (Stage 6 Approved)</h2>
             <div className="flex space-x-2">
               <div className="relative">
                 <Input
@@ -507,17 +494,11 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
           {filteredInitiatives.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
-                <Lock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Timeline Tracker Access</h3>
-                <p className="text-muted-foreground mb-4">
-                  You don't have any initiatives assigned for Timeline Tracker (Stage 6).
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Initiatives Available</h3>
+                <p className="text-muted-foreground">
+                  You currently have no initiatives where Stage 6 (Timeline Tracker) has been approved and you are assigned as Initiative Lead.
                 </p>
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Timeline Tracker access is granted only after Stage 6 approval and when you are assigned as Initiative Lead (IL).
-                  </AlertDescription>
-                </Alert>
               </CardContent>
             </Card>
           ) : (
@@ -533,9 +514,9 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
                       <div className="flex justify-between items-start">
                         <div>
                           <CardTitle className="text-lg line-clamp-2">{initiative.initiativeNumber}</CardTitle>
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{initiative.title}</p>
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{initiative.initiativeTitle}</p>
                         </div>
-                        <Badge variant="outline">{initiative.status}</Badge>
+                        <Badge variant="outline">{initiative.initiativeStatus}</Badge>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -546,7 +527,7 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
                         </div>
                         <div className="flex items-center">
                           <span className="w-16">Lead:</span>
-                          <span className="font-medium">{initiative.initiativeLead}</span>
+                          <span className="font-medium">{initiative.assignedUserEmail}</span>
                         </div>
                         <div className="flex items-center">
                           <span className="w-16">Savings:</span>
@@ -554,7 +535,7 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
                         </div>
                         <div className="flex items-center">
                           <span className="w-16">Stage:</span>
-                          <Badge variant="secondary" className="text-xs">Stage {initiative.currentStage}</Badge>
+                          <Badge variant="secondary" className="text-xs">Stage {initiative.stageNumber || 6}</Badge>
                         </div>
                       </div>
                     </CardContent>
@@ -595,7 +576,7 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
                 Timeline for: {approvedInitiatives.find((i: Initiative) => i.id === selectedInitiativeId)?.initiativeNumber}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {approvedInitiatives.find((i: Initiative) => i.id === selectedInitiativeId)?.title}
+                {approvedInitiatives.find((i: Initiative) => i.id === selectedInitiativeId)?.initiativeTitle}
               </p>
             </div>
             <Button variant="outline" onClick={() => setSelectedInitiativeId(null)}>
@@ -632,132 +613,114 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
                       </CardContent>
                     </Card>
                   ) : (
-                    timelineEntries.map((entry: TimelineEntry) => (
-                      <Card key={entry.id} className="relative">
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className={cn("w-3 h-3 rounded-full", getStatusColor(entry.status))} />
-                              <div>
-                                <CardTitle className="text-lg">{entry.stageName}</CardTitle>
-                                <div className="flex items-center space-x-2 mt-1">
-                                  {getStatusIcon(entry.status)}
-                                  <Badge variant="outline" className="text-xs">
-                                    {entry.status.replace('_', ' ')}
-                                  </Badge>
-                                  <span className="text-xs text-muted-foreground">
-                                    Progress: {calculateProgress(entry)}%
-                                  </span>
+                    <div className="grid gap-4">
+                      {timelineEntries.map((entry: TimelineEntry) => (
+                        <Card key={entry.id} className="hover:shadow-md transition-shadow">
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                {getStatusIcon(entry.status)}
+                                <div>
+                                  <CardTitle className="text-lg">{entry.stageName}</CardTitle>
+                                  <p className="text-sm text-muted-foreground">
+                                    Responsible: {entry.responsiblePerson}
+                                  </p>
                                 </div>
                               </div>
+                              <div className="flex items-center space-x-2">
+                                <Badge variant="outline">{entry.status}</Badge>
+                                <Button size="sm" variant="outline" onClick={() => handleEdit(entry)}>
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => deleteMutation.mutate(entry.id!)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex space-x-2">
-                              <Button size="sm" variant="outline" onClick={() => handleEdit(entry)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => deleteMutation.mutate(entry.id!)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div>
+                                <Label className="text-sm font-medium">Planned Duration</Label>
+                                <p className="text-sm">
+                                  {format(new Date(entry.plannedStartDate), 'PPP')} - {format(new Date(entry.plannedEndDate), 'PPP')}
+                                </p>
+                              </div>
+                              {entry.actualStartDate && (
+                                <div>
+                                  <Label className="text-sm font-medium">Actual Duration</Label>
+                                  <p className="text-sm">
+                                    {format(new Date(entry.actualStartDate), 'PPP')}
+                                    {entry.actualEndDate && ` - ${format(new Date(entry.actualEndDate), 'PPP')}`}
+                                  </p>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                          
-                          {/* Progress Bar */}
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-                            <div 
-                              className={cn("h-2 rounded-full transition-all duration-500", {
-                                'bg-yellow-500': entry.status === 'PENDING',
-                                'bg-blue-500': entry.status === 'IN_PROGRESS', 
-                                'bg-green-500': entry.status === 'COMPLETED',
-                                'bg-red-500': entry.status === 'DELAYED'
-                              })}
-                              style={{ width: `${calculateProgress(entry)}%` }}
-                            />
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">Planned Start</Label>
-                              <p className="text-sm font-medium">{format(new Date(entry.plannedStartDate), 'MMM dd, yyyy')}</p>
+                            
+                            {/* Progress Bar */}
+                            <div className="mb-4">
+                              <div className="flex justify-between text-sm mb-1">
+                                <span>Progress</span>
+                                <span>{calculateProgress(entry)}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className={`h-2 rounded-full ${getStatusColor(entry.status)}`}
+                                  style={{ width: `${calculateProgress(entry)}%` }}
+                                ></div>
+                              </div>
                             </div>
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">Planned End</Label>
-                              <p className="text-sm font-medium">{format(new Date(entry.plannedEndDate), 'MMM dd, yyyy')}</p>
-                            </div>
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">Actual Start</Label>
-                              <p className="text-sm font-medium">
-                                {entry.actualStartDate 
-                                  ? format(new Date(entry.actualStartDate), 'MMM dd, yyyy') 
-                                  : <span className="text-muted-foreground">Not started</span>}
-                              </p>
-                            </div>
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">Actual End</Label>
-                              <p className="text-sm font-medium">
-                                {entry.actualEndDate 
-                                  ? format(new Date(entry.actualEndDate), 'MMM dd, yyyy') 
-                                  : <span className="text-muted-foreground">Not completed</span>}
-                              </p>
-                            </div>
-                          </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">Responsible Person</Label>
-                              <p className="text-sm font-medium">{entry.responsiblePerson}</p>
-                            </div>
-                            <div>
-                              <Label className="text-sm font-medium text-muted-foreground">Progress</Label>
-                              <p className="text-sm font-medium">{calculateProgress(entry)}%</p>
-                            </div>
-                          </div>
+                            {entry.remarks && (
+                              <div className="mb-4 p-3 bg-muted rounded-lg">
+                                <Label className="text-sm font-medium">Remarks</Label>
+                                <p className="text-sm mt-1">{entry.remarks}</p>
+                              </div>
+                            )}
 
-                          {entry.remarks && (
-                            <div className="mb-4 p-3 bg-muted rounded-lg">
-                              <Label className="text-sm font-medium text-muted-foreground">Remarks</Label>
-                              <p className="text-sm mt-1">{entry.remarks}</p>
+                            <div className="flex space-x-2 pt-3 border-t">
+                              <div className="flex items-center space-x-2">
+                                <Badge variant={entry.siteLeadApproval ? "default" : "outline"} className="text-xs">
+                                  {entry.siteLeadApproval ? "✓ Site Lead" : "○ Site Lead"}
+                                </Badge>
+                                <Badge variant={entry.initiativeLeadApproval ? "default" : "outline"} className="text-xs">
+                                  {entry.initiativeLeadApproval ? "✓ Initiative Lead" : "○ Initiative Lead"}
+                                </Badge>
+                              </div>
+                              <div className="flex space-x-1 ml-auto">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => approvalMutation.mutate({ 
+                                    id: entry.id!, 
+                                    siteLeadApproval: !entry.siteLeadApproval 
+                                  })}
+                                  disabled={user.role !== 'STLD'}
+                                >
+                                  Site Lead
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => approvalMutation.mutate({ 
+                                    id: entry.id!, 
+                                    initiativeLeadApproval: !entry.initiativeLeadApproval 
+                                  })}
+                                  disabled={user.role !== 'IL'}
+                                >
+                                  IL Approve
+                                </Button>
+                              </div>
                             </div>
-                          )}
-
-                          <div className="flex flex-wrap gap-4 pt-3 border-t">
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                checked={entry.siteLeadApproval}
-                                onChange={(e) => approvalMutation.mutate({
-                                  id: entry.id!,
-                                  siteLeadApproval: e.target.checked
-                                })}
-                                className="rounded"
-                                disabled={approvalMutation.isPending}
-                              />
-                              <Label className="text-sm">Site Lead Approval</Label>
-                              {entry.siteLeadApproval && <CheckCircle className="h-4 w-4 text-green-500" />}
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                checked={entry.initiativeLeadApproval}
-                                onChange={(e) => approvalMutation.mutate({
-                                  id: entry.id!,
-                                  initiativeLeadApproval: e.target.checked
-                                })}
-                                className="rounded"
-                                disabled={approvalMutation.isPending}
-                              />
-                              <Label className="text-sm">Initiative Lead Approval</Label>
-                              {entry.initiativeLeadApproval && <CheckCircle className="h-4 w-4 text-green-500" />}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}
@@ -767,12 +730,14 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                   <CardContent className="p-6 text-center">
+                    <FileText className="h-8 w-8 mx-auto text-blue-600 mb-2" />
                     <h3 className="text-2xl font-bold text-blue-600">{timelineEntries.length}</h3>
                     <p className="text-sm text-muted-foreground">Total Entries</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-6 text-center">
+                    <CheckCircle className="h-8 w-8 mx-auto text-green-600 mb-2" />
                     <h3 className="text-2xl font-bold text-green-600">
                       {timelineEntries.filter((e: TimelineEntry) => e.status === 'COMPLETED').length}
                     </h3>
@@ -781,6 +746,7 @@ export default function TimelineTracker({ user }: TimelineTrackerProps) {
                 </Card>
                 <Card>
                   <CardContent className="p-6 text-center">
+                    <Clock className="h-8 w-8 mx-auto text-yellow-600 mb-2" />
                     <h3 className="text-2xl font-bold text-yellow-600">
                       {timelineEntries.filter((e: TimelineEntry) => e.status === 'IN_PROGRESS').length}
                     </h3>
