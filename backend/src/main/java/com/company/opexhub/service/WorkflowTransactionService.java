@@ -326,7 +326,7 @@ public class WorkflowTransactionService {
         // Create IL stages 4, 5, 6 dynamically with the selected IL
         String[][] ilStages = {
             {"4", "MOC Stage", "IL"},
-            // {"5", "CAPEX Stage", "IL"},
+            {"5", "CAPEX Stage", "IL"},
             {"6", "Initiative Timeline Tracker", "IL"}
         };
         

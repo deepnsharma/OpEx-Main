@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useProgressPercentage, useCurrentPendingStage } from '@/hooks/useWorkflowTransactions';
 import { useUser } from '@/hooks/useUsers';
+import { initiativeAPI } from '@/lib/api';
 
 interface Initiative {
   id: string | number;
@@ -66,24 +67,26 @@ interface InitiativeModalProps {
   onSave?: (data: any) => void;
 }
 
-// Mock workflow stage names for display
+// Correct workflow stage names matching backend
 const WORKFLOW_STAGE_NAMES: { [key: number]: string } = {
   1: 'Register Initiative',
-  2: 'Site Lead Review',
-  3: 'Initiative Lead Assignment',
-  4: 'Site Head Review',
-  5: 'Corp TSO Review',
-  6: 'MoC Review',
-  7: 'CAPEX Review',
-  8: 'Final Approval',
-  9: 'Implementation',
-  10: 'Closure'
+  2: 'Approval',
+  3: 'Define Responsibilities',
+  4: 'MOC Stage',
+  5: 'CAPEX Stage',
+  6: 'Initiative Timeline Tracker',
+  7: 'Trial Implementation & Performance Check',
+  8: 'Periodic Status Review with CMO',
+  9: 'Savings Monitoring (1 Month)',
+  10: 'Saving Validation with F&A',
+  11: 'Initiative Closure'
 };
 
 export default function InitiativeModal({ isOpen, onClose, initiative, mode, onSave }: InitiativeModalProps) {
   const [isEditing, setIsEditing] = useState(mode === 'edit');
   const [formData, setFormData] = useState<any>(initiative || {});
   const [activeTab, setActiveTab] = useState('overview');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Update isEditing state when mode prop changes
   useEffect(() => {
@@ -141,11 +144,47 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
     }
   });
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave(formData);
+  const handleSave = async () => {
+    if (!initiative?.id) return;
+    
+    try {
+      setIsSaving(true);
+      
+      // Convert form data to API format
+      const updateData = {
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        expectedSavings: typeof formData.expectedSavings === 'string' 
+          ? parseFloat(formData.expectedSavings.replace(/[₹,]/g, '')) 
+          : formData.expectedSavings,
+        site: formData.site,
+        discipline: formData.discipline,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        requiresMoc: formData.requiresMoc || false,
+        requiresCapex: formData.requiresCapex || false,
+        initiatorName: formData.initiatorName || formData.initiator
+      };
+
+      console.log('Updating initiative with data:', updateData);
+      
+      // Call API to update initiative
+      await initiativeAPI.update(Number(initiative.id), updateData);
+      
+      if (onSave) {
+        onSave(formData);
+      }
+      setIsEditing(false);
+      
+      // Refresh the page to show updated data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating initiative:', error);
+      alert('Failed to update initiative. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
-    setIsEditing(false);
   };
 
   const handleCancel = () => {
@@ -215,13 +254,13 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
               )}
               {isEditing && (
                 <>
-                  <Button variant="outline" size="sm" onClick={handleCancel} className="min-w-[90px]">
+                  <Button variant="outline" size="sm" onClick={handleCancel} className="min-w-[90px]" disabled={isSaving}>
                     <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
-                  <Button size="sm" onClick={handleSave} className="min-w-[120px]">
+                  <Button size="sm" onClick={handleSave} className="min-w-[120px]" disabled={isSaving}>
                     <Save className="h-4 w-4 mr-2" />
-                    Save Changes
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </>
               )}
@@ -427,9 +466,8 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
                       <Input
                         id="initiativeNumber"
                         value={formData.initiativeNumber || ''}
-                        disabled={!isEditing}
-                        onChange={(e) => setFormData({ ...formData, initiativeNumber: e.target.value })}
-                        className="mt-1"
+                        disabled={true} // Always non-editable as requested
+                        className="mt-1 bg-muted"
                       />
                     </div>
                     <div>
@@ -477,12 +515,12 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="OP">Operations</SelectItem>
-                            <SelectItem value="MT">Maintenance</SelectItem>
-                            <SelectItem value="EG">Engineering</SelectItem>
-                            <SelectItem value="QA">Quality Assurance</SelectItem>
-                            <SelectItem value="SF">Safety</SelectItem>
-                            <SelectItem value="ENV">Environment</SelectItem>
+                            <SelectItem value="Operation">Operation</SelectItem>
+                            <SelectItem value="Engineering & Utility">Engineering & Utility</SelectItem>
+                            <SelectItem value="Environment">Environment</SelectItem>
+                            <SelectItem value="Safety">Safety</SelectItem>
+                            <SelectItem value="Quality">Quality</SelectItem>
+                            <SelectItem value="Others">Others</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (

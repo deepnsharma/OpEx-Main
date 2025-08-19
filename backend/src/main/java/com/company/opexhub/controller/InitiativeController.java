@@ -32,18 +32,20 @@ public class InitiativeController {
     private InitiativeService initiativeService;
 
     @GetMapping
-    public Page<Initiative> getAllInitiatives(
+    public Page<InitiativeResponse> getAllInitiatives(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String site,
             @RequestParam(required = false) String search,
             Pageable pageable) {
-        return initiativeService.searchInitiatives(status, site, search, pageable);
+        
+        Page<Initiative> initiatives = initiativeService.searchInitiatives(status, site, search, pageable);
+        return initiatives.map(this::convertToResponse);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Initiative> getInitiativeById(@PathVariable Long id) {
+    public ResponseEntity<InitiativeResponse> getInitiativeById(@PathVariable Long id) {
         return initiativeService.getInitiativeById(id)
-                .map(ResponseEntity::ok)
+                .map(initiative -> ResponseEntity.ok(convertToResponse(initiative)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -52,40 +54,7 @@ public class InitiativeController {
                                             @AuthenticationPrincipal UserPrincipal currentUser) {
         try {
             Initiative initiative = initiativeService.createInitiative(request, currentUser.getId());
-            
-            // Convert to response DTO to avoid serialization issues
-            InitiativeResponse response = new InitiativeResponse();
-            response.setId(initiative.getId());
-            response.setTitle(initiative.getTitle());
-            response.setDescription(initiative.getDescription());
-            response.setStatus(initiative.getStatus());
-            response.setPriority(initiative.getPriority());
-            response.setExpectedSavings(initiative.getExpectedSavings());
-            response.setActualSavings(initiative.getActualSavings());
-            response.setSite(initiative.getSite());
-            response.setDiscipline(initiative.getDiscipline());
-            response.setStartDate(initiative.getStartDate());
-            response.setEndDate(initiative.getEndDate());
-            response.setProgressPercentage(initiative.getProgressPercentage());
-            response.setCurrentStage(initiative.getCurrentStage());
-            response.setRequiresMoc(initiative.getRequiresMoc());
-            response.setRequiresCapex(initiative.getRequiresCapex());
-            response.setCreatedAt(initiative.getCreatedAt());
-            response.setUpdatedAt(initiative.getUpdatedAt());
-            response.setCreatedByName(initiative.getCreatedBy().getFullName());
-            response.setCreatedByEmail(initiative.getCreatedBy().getEmail());
-            
-            // Set new fields for assumptions and additional form data
-            response.setAssumption1(initiative.getAssumption1());
-            response.setAssumption2(initiative.getAssumption2());
-            response.setAssumption3(initiative.getAssumption3());
-            response.setBaselineData(initiative.getBaselineData());
-            response.setTargetOutcome(initiative.getTargetOutcome());
-            response.setTargetValue(initiative.getTargetValue());
-            response.setConfidenceLevel(initiative.getConfidenceLevel());
-            response.setEstimatedCapex(initiative.getEstimatedCapex());
-            response.setBudgetType(initiative.getBudgetType());
-            response.setInitiatorName(initiative.getInitiatorName());
+            InitiativeResponse response = convertToResponse(initiative);
             
             return ResponseEntity.ok(new ApiResponse(true, "Initiative created successfully", response));
         } catch (Exception e) {
@@ -99,7 +68,8 @@ public class InitiativeController {
                                             @Valid @RequestBody InitiativeRequest request) {
         try {
             Initiative initiative = initiativeService.updateInitiative(id, request);
-            return ResponseEntity.ok(new ApiResponse(true, "Initiative updated successfully", initiative));
+            InitiativeResponse response = convertToResponse(initiative);
+            return ResponseEntity.ok(new ApiResponse(true, "Initiative updated successfully", response));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse(false, e.getMessage()));
@@ -115,5 +85,48 @@ public class InitiativeController {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse(false, e.getMessage()));
         }
+    }
+
+    // Helper method to convert Initiative entity to InitiativeResponse DTO
+    private InitiativeResponse convertToResponse(Initiative initiative) {
+        InitiativeResponse response = new InitiativeResponse();
+        response.setId(initiative.getId());
+        response.setTitle(initiative.getTitle());
+        response.setDescription(initiative.getDescription());
+        response.setStatus(initiative.getStatus());
+        response.setPriority(initiative.getPriority());
+        response.setExpectedSavings(initiative.getExpectedSavings());
+        response.setActualSavings(initiative.getActualSavings());
+        response.setSite(initiative.getSite());
+        response.setDiscipline(initiative.getDiscipline());
+        response.setInitiativeNumber(initiative.getInitiativeNumber());
+        response.setStartDate(initiative.getStartDate());
+        response.setEndDate(initiative.getEndDate());
+        response.setProgressPercentage(initiative.getProgressPercentage());
+        response.setCurrentStage(initiative.getCurrentStage()); // This will auto-set currentStageName
+        response.setRequiresMoc(initiative.getRequiresMoc());
+        response.setRequiresCapex(initiative.getRequiresCapex());
+        response.setCreatedAt(initiative.getCreatedAt());
+        response.setUpdatedAt(initiative.getUpdatedAt());
+        
+        // Set creator information
+        if (initiative.getCreatedBy() != null) {
+            response.setCreatedByName(initiative.getCreatedBy().getFullName());
+            response.setCreatedByEmail(initiative.getCreatedBy().getEmail());
+        }
+        
+        // Set new fields for assumptions and additional form data
+        response.setAssumption1(initiative.getAssumption1());
+        response.setAssumption2(initiative.getAssumption2());
+        response.setAssumption3(initiative.getAssumption3());
+        response.setBaselineData(initiative.getBaselineData());
+        response.setTargetOutcome(initiative.getTargetOutcome());
+        response.setTargetValue(initiative.getTargetValue());
+        response.setConfidenceLevel(initiative.getConfidenceLevel());
+        response.setEstimatedCapex(initiative.getEstimatedCapex());
+        response.setBudgetType(initiative.getBudgetType());
+        response.setInitiatorName(initiative.getInitiatorName());
+        
+        return response;
     }
 }

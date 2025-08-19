@@ -55,10 +55,40 @@ export default function Reports({ user }: ReportsProps) {
   const inProgressCount = filteredInitiatives.filter((i: any) => i.status === 'In Progress').length;
   const avgSavingsPerInitiative = filteredInitiatives.length > 0 ? totalSavings / filteredInitiatives.length : 0;
 
-  const handleDownloadReport = (reportType: string) => {
-    // Mock download functionality
-    console.log(`Downloading ${reportType} report for ${selectedSite} site(s) - ${selectedPeriod} period`);
-    alert(`${reportType} report download started`);
+  const handleDownloadReport = async (reportType: string) => {
+    if (reportType === 'Detailed Report (Excel)') {
+      try {
+        // Get the backend URL from environment
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+        
+        // Prepare query parameters
+        const params = new URLSearchParams();
+        if (selectedSite !== 'all') {
+          params.append('site', selectedSite);
+        }
+        // Add current year for filtering
+        params.append('year', new Date().getFullYear().toString());
+        
+        const url = `${backendUrl}/api/reports/export/detailed-excel?${params.toString()}`;
+        
+        // Create a temporary link to trigger download
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', ''); // Filename will be set by backend
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log(`Downloading detailed Excel report for ${selectedSite} site(s)`);
+      } catch (error) {
+        console.error('Error downloading Excel report:', error);
+        alert('Failed to download Excel report. Please try again.');
+      }
+    } else {
+      // Mock download functionality for other reports
+      console.log(`Downloading ${reportType} report for ${selectedSite} site(s) - ${selectedPeriod} period`);
+      alert(`${reportType} report download started`);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -296,7 +326,7 @@ export default function Reports({ user }: ReportsProps) {
                 </Button>
                 
                 <Button 
-                  onClick={() => handleDownloadReport('Detailed Initiative Report')}
+                  onClick={() => handleDownloadReport('Detailed Report (Excel)')}
                   variant="outline"
                   className="w-full"
                 >

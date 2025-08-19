@@ -27,4 +27,19 @@ public interface MonthlyMonitoringEntryRepository extends JpaRepository<MonthlyM
     
     @Query("SELECT m FROM MonthlyMonitoringEntry m WHERE m.enteredBy = :userRole")
     List<MonthlyMonitoringEntry> findByEnteredBy(@Param("userRole") String userRole);
+
+     
+    List<MonthlyMonitoringEntry> findByInitiativeIdOrderByMonitoringMonthDesc(Long initiativeId);
+    
+    List<MonthlyMonitoringEntry> findByInitiativeIdAndMonitoringMonth(Long initiativeId, YearMonth monthYear);
+    
+    @Query("SELECT mme FROM MonthlyMonitoringEntry mme WHERE mme.initiative.id = :initiativeId AND mme.monitoringMonth = :monthYear")
+    List<MonthlyMonitoringEntry> findByInitiativeAndMonth(@Param("initiativeId") Long initiativeId, @Param("monthYear") YearMonth monthYear);
+    
+    @Query("SELECT mme FROM MonthlyMonitoringEntry mme WHERE mme.initiative.site = :site")
+    List<MonthlyMonitoringEntry> findBySite(@Param("site") String site);
+    
+    List<MonthlyMonitoringEntry> findByIsFinalizedTrue();
+    
+    List<MonthlyMonitoringEntry> findByFaApprovalTrue();
 }

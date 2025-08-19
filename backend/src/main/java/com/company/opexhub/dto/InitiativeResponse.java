@@ -20,6 +20,7 @@ public class InitiativeResponse {
     private LocalDate endDate;
     private Integer progressPercentage;
     private Integer currentStage;
+    private String currentStageName; // New field for current stage name
     private Boolean requiresMoc;
     private Boolean requiresCapex;
     private LocalDateTime createdAt;
@@ -41,6 +42,26 @@ public class InitiativeResponse {
 
     // Constructors
     public InitiativeResponse() {}
+
+    // Static method to get stage name by stage number
+    public static String getStageName(Integer stageNumber) {
+        if (stageNumber == null) return "Register Initiative";
+        
+        switch (stageNumber) {
+            case 1: return "Register Initiative";
+            case 2: return "Approval";
+            case 3: return "Define Responsibilities";
+            case 4: return "MOC Stage";
+            case 5: return "CAPEX Stage";
+            case 6: return "Initiative Timeline Tracker";
+            case 7: return "Trial Implementation & Performance Check";
+            case 8: return "Periodic Status Review with CMO";
+            case 9: return "Savings Monitoring (1 Month)";
+            case 10: return "Saving Validation with F&A";
+            case 11: return "Initiative Closure";
+            default: return "Register Initiative";
+        }
+    }
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -86,7 +107,13 @@ public class InitiativeResponse {
     public void setProgressPercentage(Integer progressPercentage) { this.progressPercentage = progressPercentage; }
 
     public Integer getCurrentStage() { return currentStage; }
-    public void setCurrentStage(Integer currentStage) { this.currentStage = currentStage; }
+    public void setCurrentStage(Integer currentStage) { 
+        this.currentStage = currentStage; 
+        this.currentStageName = getStageName(currentStage); // Auto-set stage name
+    }
+
+    public String getCurrentStageName() { return currentStageName; }
+    public void setCurrentStageName(String currentStageName) { this.currentStageName = currentStageName; }
 
     public Boolean getRequiresMoc() { return requiresMoc; }
     public void setRequiresMoc(Boolean requiresMoc) { this.requiresMoc = requiresMoc; }

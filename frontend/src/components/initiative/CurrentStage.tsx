@@ -6,18 +6,19 @@ interface CurrentStageProps {
   fallbackStage?: number;
 }
 
-// Mock workflow stage names for display
+// Correct workflow stage names matching backend
 const WORKFLOW_STAGE_NAMES: { [key: number]: string } = {
   1: 'Register Initiative',
-  2: 'Site Lead Review',
-  3: 'Initiative Lead Assignment',
-  4: 'Site Head Review',
-  5: 'Corp TSO Review',
-  6: 'MoC Review',
-  7: 'CAPEX Review',
-  8: 'Final Approval',
-  9: 'Implementation',
-  10: 'Closure'
+  2: 'Approval',
+  3: 'Define Responsibilities',
+  4: 'MOC Stage',
+  5: 'CAPEX Stage',
+  6: 'Initiative Timeline Tracker',
+  7: 'Trial Implementation & Performance Check',
+  8: 'Periodic Status Review with CMO',
+  9: 'Savings Monitoring (1 Month)',
+  10: 'Saving Validation with F&A',
+  11: 'Initiative Closure'
 };
 
 export default function CurrentStage({ initiativeId, fallbackStage = 1 }: CurrentStageProps) {

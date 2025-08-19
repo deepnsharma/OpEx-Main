@@ -97,6 +97,7 @@ export default function Initiatives({ user }: InitiativesProps) {
         startDate: item.startDate,
         endDate: item.endDate,
         currentStage: item.currentStage,
+        currentStageName: item.currentStageName, // New field from backend API
         requiresMoc: item.requiresMoc,
         requiresCapex: item.requiresCapex,
         createdByName: item.createdByName,
