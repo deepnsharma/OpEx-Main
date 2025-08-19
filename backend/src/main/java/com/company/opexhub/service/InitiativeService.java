@@ -74,7 +74,8 @@ public class InitiativeService {
                 request.getDiscipline(),
                 request.getStartDate(),
                 request.getEndDate(),
-                user
+                user,
+                request.getInitiatorName()
         );
 
         initiative.setRequiresMoc(request.getRequiresMoc());
@@ -154,6 +155,7 @@ public class InitiativeService {
         initiative.setEndDate(request.getEndDate());
         initiative.setRequiresMoc(request.getRequiresMoc());
         initiative.setRequiresCapex(request.getRequiresCapex());
+        initiative.setInitiatorName(request.getInitiatorName());
 
         // Update new fields for assumptions and additional form data
         initiative.setAssumption1(request.getAssumption1());

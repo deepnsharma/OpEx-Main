@@ -42,6 +42,10 @@ public class InitiativeRequest {
     private BigDecimal estimatedCapex;
     private String budgetType;
 
+    @NotBlank
+    @Size(max = 100)
+    private String initiatorName;
+
     // Constructors
     public InitiativeRequest() {}
 
@@ -104,4 +108,7 @@ public class InitiativeRequest {
 
     public String getBudgetType() { return budgetType; }
     public void setBudgetType(String budgetType) { this.budgetType = budgetType; }
+
+    public String getInitiatorName() { return initiatorName; }
+    public void setInitiatorName(String initiatorName) { this.initiatorName = initiatorName; }
 }

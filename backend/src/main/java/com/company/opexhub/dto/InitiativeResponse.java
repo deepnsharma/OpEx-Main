@@ -37,6 +37,7 @@ public class InitiativeResponse {
     private Integer confidenceLevel;
     private BigDecimal estimatedCapex;
     private String budgetType;
+    private String initiatorName;
 
     // Constructors
     public InitiativeResponse() {}
@@ -133,4 +134,7 @@ public class InitiativeResponse {
 
     public String getBudgetType() { return budgetType; }
     public void setBudgetType(String budgetType) { this.budgetType = budgetType; }
+
+    public String getInitiatorName() { return initiatorName; }
+    public void setInitiatorName(String initiatorName) { this.initiatorName = initiatorName; }
 }

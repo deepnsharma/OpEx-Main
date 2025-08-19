@@ -183,7 +183,7 @@ export default function Workflow({ user }: WorkflowProps) {
                             </div>
                             <div>
                               <span className="text-muted-foreground">Expected Savings:</span>
-                              <p className="font-medium">${initiative.expectedSavings || 0}K</p>
+                          <p className="font-medium">₹{initiative.expectedSavings || 0}K</p>
                             </div>
                           </div>
                           

@@ -79,6 +79,7 @@ export const initiativeAPI = {
   create: async (initiativeData: {
     title: string;
     description: string;
+    initiatorName: string;
     priority: string;
     expectedSavings: number;
     site: string;

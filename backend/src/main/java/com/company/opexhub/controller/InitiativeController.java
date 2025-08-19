@@ -85,6 +85,7 @@ public class InitiativeController {
             response.setConfidenceLevel(initiative.getConfidenceLevel());
             response.setEstimatedCapex(initiative.getEstimatedCapex());
             response.setBudgetType(initiative.getBudgetType());
+            response.setInitiatorName(initiative.getInitiatorName());
             
             return ResponseEntity.ok(new ApiResponse(true, "Initiative created successfully", response));
         } catch (Exception e) {

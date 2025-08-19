@@ -54,6 +54,8 @@ interface Initiative {
   createdByName?: string;
   createdByEmail?: string;
   createdBy?: number | string; // User ID who created the initiative
+  initiatorName?: string; // Name of the person who initiated the initiative
+  initiator?: string; // Fallback initiator name from mock data
 }
 
 interface InitiativeModalProps {
@@ -116,8 +118,13 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
     WORKFLOW_STAGE_NAMES[initiative?.currentStage || 1] || 
     'Register Initiative';
 
-  // Get the creator name - priority: createdByName from initiative, then fetched user data, then fallback
-  const creatorName = initiative?.createdByName || createdByUser?.fullName || createdByUser?.name || 'Unknown User';
+  // Get the creator name - priority: initiatorName (new field), then initiator (mock data), then createdByName, then fetched user data, then fallback
+  const creatorName = initiative?.initiatorName || 
+                      initiative?.initiator || 
+                      initiative?.createdByName || 
+                      createdByUser?.fullName || 
+                      createdByUser?.name || 
+                      'Unknown User';
   const creatorEmail = initiative?.createdByEmail || createdByUser?.email;
 
   // Debug logging to help identify the issue
@@ -125,7 +132,13 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
     mode, 
     isEditing, 
     initiativeId: initiative?.id,
-    modalTitle: isEditing ? 'Edit Initiative' : 'Initiative Details'
+    modalTitle: isEditing ? 'Edit Initiative' : 'Initiative Details',
+    initiativeData: {
+      initiatorName: initiative?.initiatorName,
+      createdByName: initiative?.createdByName,
+      createdBy: initiative?.createdBy,
+      fetchedUser: createdByUser
+    }
   });
 
   const handleSave = () => {
@@ -168,7 +181,7 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[85vh] p-0">
+      <DialogContent className="max-w-6xl max-h-[90vh] p-0 w-[95vw]">
         <DialogHeader className="px-6 py-4 border-b bg-gradient-to-r from-primary/5 to-secondary/5">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -235,7 +248,7 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
 
             <TabsContent value="overview" className="mt-6 space-y-6">
               {/* Quick Stats */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
                 <Card className="border-l-4 border-l-primary">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
@@ -300,7 +313,7 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
               </div>
 
               {/* Progress and Stage Information */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
@@ -360,28 +373,35 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
 
               {/* Initiative Summary */}
               <Card>
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <FileText className="h-5 w-5" />
                     Initiative Summary
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div>
-                      <p className="font-semibold text-lg">{initiative?.title}</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {initiative?.discipline} • {initiative?.site}
-                      </p>
+                      <p className="font-semibold text-base leading-tight">{initiative?.title}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          {initiative?.discipline}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {initiative?.site}
+                        </Badge>
+                      </div>
                     </div>
                     {initiative?.description && (
                       <>
                         <Separator />
                         <div>
                           <p className="text-sm font-medium mb-2">Description</p>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {initiative.description}
-                          </p>
+                          <div className="max-h-32 overflow-y-auto">
+                            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                              {initiative.description}
+                            </p>
+                          </div>
                         </div>
                       </>
                     )}
