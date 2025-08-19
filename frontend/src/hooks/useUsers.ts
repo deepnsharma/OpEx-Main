@@ -18,6 +18,23 @@ export const useUsers = () => {
   });
 };
 
+export const useUser = (userId: number | string) => {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      try {
+        // Try real API first
+        return await userAPI.getById(Number(userId));
+      } catch (error) {
+        console.warn('Failed to fetch user by ID from API, using mock data:', error);
+        // Fallback to mock data - convert both to strings for comparison since mockUsers.id is string
+        return mockUsers.find(user => user.id === String(userId));
+      }
+    },
+    enabled: !!userId,
+  });
+};
+
 export const useUsersBySite = (site: string) => {
   return useQuery({
     queryKey: ['users', 'site', site],

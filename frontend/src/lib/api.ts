@@ -187,6 +187,11 @@ export const userAPI = {
     return response.data;
   },
   
+  getById: async (id: number) => {
+    const response = await api.get(`/users/${id}`);
+    return response.data;
+  },
+  
   getBySite: async (site: string) => {
     const response = await api.get(`/users/site/${site}`);
     return response.data;

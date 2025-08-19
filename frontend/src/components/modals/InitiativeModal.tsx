@@ -27,6 +27,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useProgressPercentage, useCurrentPendingStage } from '@/hooks/useWorkflowTransactions';
+import { useUser } from '@/hooks/useUsers';
 
 interface Initiative {
   id: string | number;
@@ -52,6 +53,7 @@ interface Initiative {
   requiresCapex?: boolean;
   createdByName?: string;
   createdByEmail?: string;
+  createdBy?: number | string; // User ID who created the initiative
 }
 
 interface InitiativeModalProps {
@@ -81,6 +83,19 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
   const [formData, setFormData] = useState<any>(initiative || {});
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Update isEditing state when mode prop changes
+  useEffect(() => {
+    setIsEditing(mode === 'edit');
+  }, [mode]);
+
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setIsEditing(mode === 'edit');
+      setActiveTab('overview');
+    }
+  }, [isOpen, mode]);
+
   // Update formData when initiative changes
   useEffect(() => {
     if (initiative) {
@@ -92,10 +107,26 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
   const { data: progressData } = useProgressPercentage(Number(initiative?.id));
   const { data: currentStageData } = useCurrentPendingStage(Number(initiative?.id));
 
+  // Fetch user data for "Created By" information
+  // Basic implementation: only check for createdBy user ID
+  const { data: createdByUser } = useUser(initiative?.createdBy);
+
   const actualProgress = progressData?.progressPercentage ?? initiative?.progress ?? 0;
   const currentStageName = currentStageData?.stageName || 
     WORKFLOW_STAGE_NAMES[initiative?.currentStage || 1] || 
     'Register Initiative';
+
+  // Get the creator name - priority: createdByName from initiative, then fetched user data, then fallback
+  const creatorName = initiative?.createdByName || createdByUser?.fullName || createdByUser?.name || 'Unknown User';
+  const creatorEmail = initiative?.createdByEmail || createdByUser?.email;
+
+  // Debug logging to help identify the issue
+  console.log('Modal Debug:', { 
+    mode, 
+    isEditing, 
+    initiativeId: initiative?.id,
+    modalTitle: isEditing ? 'Edit Initiative' : 'Initiative Details'
+  });
 
   const handleSave = () => {
     if (onSave) {
@@ -151,22 +182,31 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
                 <p className="text-sm text-muted-foreground">
                   {initiative?.initiativeNumber || `ID: ${initiative?.id}`}
                 </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={`px-2 py-1 rounded text-xs font-medium ${
+                    isEditing 
+                      ? 'bg-orange-100 text-orange-800' 
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {isEditing ? 'Edit Mode' : 'View Mode'}
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {!isEditing && mode !== 'edit' && (
-                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="min-w-[80px]">
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
               )}
               {isEditing && (
                 <>
-                  <Button variant="outline" size="sm" onClick={handleCancel}>
+                  <Button variant="outline" size="sm" onClick={handleCancel} className="min-w-[90px]">
                     <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
-                  <Button size="sm" onClick={handleSave}>
+                  <Button size="sm" onClick={handleSave} className="min-w-[120px]">
                     <Save className="h-4 w-4 mr-2" />
                     Save Changes
                   </Button>
@@ -521,9 +561,9 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Created By</p>
-                      <p className="font-medium">{initiative?.createdByName || 'Unknown User'}</p>
-                      {initiative?.createdByEmail && (
-                        <p className="text-sm text-muted-foreground">{initiative.createdByEmail}</p>
+                      <p className="font-medium">{creatorName}</p>
+                      {creatorEmail && (
+                        <p className="text-sm text-muted-foreground">{creatorEmail}</p>
                       )}
                     </div>
                     <div>

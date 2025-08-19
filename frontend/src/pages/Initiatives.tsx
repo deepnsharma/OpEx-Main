@@ -47,6 +47,7 @@ interface Initiative {
   requiresCapex?: boolean;
   createdByName?: string;
   createdByEmail?: string;
+  createdBy?: number | string; // User ID who created the initiative
 }
 
 interface InitiativesProps {
@@ -98,7 +99,8 @@ export default function Initiatives({ user }: InitiativesProps) {
         requiresMoc: item.requiresMoc,
         requiresCapex: item.requiresCapex,
         createdByName: item.createdByName,
-        createdByEmail: item.createdByEmail
+        createdByEmail: item.createdByEmail,
+        createdBy: item.createdBy // User ID for fetching user details
       }));
     }
     return mockInitiatives;
@@ -329,11 +331,11 @@ export default function Initiatives({ user }: InitiativesProps) {
                         </div>
                       </TableCell>
                       <TableCell className="p-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-8 px-3 text-xs hover:bg-primary hover:text-primary-foreground transition-colors"
+                            className="h-8 px-3 text-xs hover:bg-primary hover:text-primary-foreground transition-colors min-w-[70px]"
                             onClick={() => handleViewInitiative(initiative)}
                           >
                             <Eye className="h-3 w-3 mr-1" />
@@ -342,7 +344,7 @@ export default function Initiatives({ user }: InitiativesProps) {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-8 px-3 text-xs hover:bg-secondary hover:text-secondary-foreground transition-colors"
+                            className="h-8 px-3 text-xs hover:bg-secondary hover:text-secondary-foreground transition-colors min-w-[70px]"
                             onClick={() => handleEditInitiative(initiative)}
                           >
                             <Edit className="h-3 w-3 mr-1" />
@@ -410,11 +412,11 @@ export default function Initiatives({ user }: InitiativesProps) {
                       <Calendar className="h-3 w-3" />
                       <span>Updated: {initiative.lastUpdated}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        className="h-7 px-2 text-xs hover:bg-primary hover:text-primary-foreground"
+                        className="h-7 px-2 text-xs hover:bg-primary hover:text-primary-foreground min-w-[60px]"
                         onClick={() => handleViewInitiative(initiative)}
                       >
                         <Eye className="h-3 w-3 mr-1" />
@@ -423,7 +425,7 @@ export default function Initiatives({ user }: InitiativesProps) {
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        className="h-7 px-2 text-xs hover:bg-secondary hover:text-secondary-foreground"
+                        className="h-7 px-2 text-xs hover:bg-secondary hover:text-secondary-foreground min-w-[60px]"
                         onClick={() => handleEditInitiative(initiative)}
                       >
                         <Edit className="h-3 w-3 mr-1" />
