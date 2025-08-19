@@ -87,6 +87,15 @@ export const initiativeAPI = {
     endDate: string;
     requiresMoc: boolean;
     requiresCapex: boolean;
+    assumption1?: string;
+    assumption2?: string;
+    assumption3?: string;
+    baselineData?: string;
+    targetOutcome?: string;
+    targetValue?: number;
+    confidenceLevel?: number;
+    estimatedCapex?: number;
+    budgetType?: string;
   }) => {
     const response = await api.post('/initiatives', initiativeData);
     return response.data;

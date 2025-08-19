@@ -27,6 +27,17 @@ public class InitiativeResponse {
     private String createdByName;
     private String createdByEmail;
 
+    // New fields for assumptions and additional form data
+    private String assumption1;
+    private String assumption2;
+    private String assumption3;
+    private String baselineData;
+    private String targetOutcome;
+    private BigDecimal targetValue;
+    private Integer confidenceLevel;
+    private BigDecimal estimatedCapex;
+    private String budgetType;
+
     // Constructors
     public InitiativeResponse() {}
 
@@ -93,4 +104,33 @@ public class InitiativeResponse {
 
     public String getCreatedByEmail() { return createdByEmail; }
     public void setCreatedByEmail(String createdByEmail) { this.createdByEmail = createdByEmail; }
+
+    // New getters and setters for assumptions
+    public String getAssumption1() { return assumption1; }
+    public void setAssumption1(String assumption1) { this.assumption1 = assumption1; }
+
+    public String getAssumption2() { return assumption2; }
+    public void setAssumption2(String assumption2) { this.assumption2 = assumption2; }
+
+    public String getAssumption3() { return assumption3; }
+    public void setAssumption3(String assumption3) { this.assumption3 = assumption3; }
+
+    // New getters and setters for additional form data
+    public String getBaselineData() { return baselineData; }
+    public void setBaselineData(String baselineData) { this.baselineData = baselineData; }
+
+    public String getTargetOutcome() { return targetOutcome; }
+    public void setTargetOutcome(String targetOutcome) { this.targetOutcome = targetOutcome; }
+
+    public BigDecimal getTargetValue() { return targetValue; }
+    public void setTargetValue(BigDecimal targetValue) { this.targetValue = targetValue; }
+
+    public Integer getConfidenceLevel() { return confidenceLevel; }
+    public void setConfidenceLevel(Integer confidenceLevel) { this.confidenceLevel = confidenceLevel; }
+
+    public BigDecimal getEstimatedCapex() { return estimatedCapex; }
+    public void setEstimatedCapex(BigDecimal estimatedCapex) { this.estimatedCapex = estimatedCapex; }
+
+    public String getBudgetType() { return budgetType; }
+    public void setBudgetType(String budgetType) { this.budgetType = budgetType; }
 }

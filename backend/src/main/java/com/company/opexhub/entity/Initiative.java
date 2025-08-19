@@ -1,15 +1,29 @@
 package com.company.opexhub.entity;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "initiatives")
@@ -74,6 +88,35 @@ public class Initiative {
 
     @Column(name = "capex_number")
     private String capexNumber;
+
+    // New fields for assumptions
+    @Column(name = "assumption_1", columnDefinition = "TEXT")
+    private String assumption1;
+
+    @Column(name = "assumption_2", columnDefinition = "TEXT")
+    private String assumption2;
+
+    @Column(name = "assumption_3", columnDefinition = "TEXT")
+    private String assumption3;
+
+    // New fields for additional form data
+    @Column(name = "baseline_data", columnDefinition = "TEXT")
+    private String baselineData;
+
+    @Column(name = "target_outcome")
+    private String targetOutcome;
+
+    @Column(name = "target_value", precision = 15, scale = 2)
+    private BigDecimal targetValue;
+
+    @Column(name = "confidence_level")
+    private Integer confidenceLevel;
+
+    @Column(name = "estimated_capex", precision = 15, scale = 2)
+    private BigDecimal estimatedCapex;
+
+    @Column(name = "budget_type")
+    private String budgetType;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -155,7 +198,6 @@ public class Initiative {
     public String getDiscipline() { return discipline; }
     public void setDiscipline(String discipline) { this.discipline = discipline; }
 
-
     public String getInitiativeNumber() { return initiativeNumber; }
     public void setInitiativeNumber(String initiativeNumber) { this.initiativeNumber = initiativeNumber; }
 
@@ -183,6 +225,35 @@ public class Initiative {
     public String getCapexNumber() { return capexNumber; }
     public void setCapexNumber(String capexNumber) { this.capexNumber = capexNumber; }
 
+    // New getters and setters for assumptions
+    public String getAssumption1() { return assumption1; }
+    public void setAssumption1(String assumption1) { this.assumption1 = assumption1; }
+
+    public String getAssumption2() { return assumption2; }
+    public void setAssumption2(String assumption2) { this.assumption2 = assumption2; }
+
+    public String getAssumption3() { return assumption3; }
+    public void setAssumption3(String assumption3) { this.assumption3 = assumption3; }
+
+    // New getters and setters for additional form data
+    public String getBaselineData() { return baselineData; }
+    public void setBaselineData(String baselineData) { this.baselineData = baselineData; }
+
+    public String getTargetOutcome() { return targetOutcome; }
+    public void setTargetOutcome(String targetOutcome) { this.targetOutcome = targetOutcome; }
+
+    public BigDecimal getTargetValue() { return targetValue; }
+    public void setTargetValue(BigDecimal targetValue) { this.targetValue = targetValue; }
+
+    public Integer getConfidenceLevel() { return confidenceLevel; }
+    public void setConfidenceLevel(Integer confidenceLevel) { this.confidenceLevel = confidenceLevel; }
+
+    public BigDecimal getEstimatedCapex() { return estimatedCapex; }
+    public void setEstimatedCapex(BigDecimal estimatedCapex) { this.estimatedCapex = estimatedCapex; }
+
+    public String getBudgetType() { return budgetType; }
+    public void setBudgetType(String budgetType) { this.budgetType = budgetType; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -197,5 +268,4 @@ public class Initiative {
 
     public Set<Comment> getComments() { return comments; }
     public void setComments(Set<Comment> comments) { this.comments = comments; }
-
 }

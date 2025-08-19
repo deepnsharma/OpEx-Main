@@ -1,19 +1,28 @@
 package com.company.opexhub.controller;
 
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.company.opexhub.dto.ApiResponse;
 import com.company.opexhub.dto.InitiativeRequest;
 import com.company.opexhub.dto.InitiativeResponse;
 import com.company.opexhub.entity.Initiative;
 import com.company.opexhub.security.UserPrincipal;
 import com.company.opexhub.service.InitiativeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/initiatives")
@@ -65,6 +74,17 @@ public class InitiativeController {
             response.setUpdatedAt(initiative.getUpdatedAt());
             response.setCreatedByName(initiative.getCreatedBy().getFullName());
             response.setCreatedByEmail(initiative.getCreatedBy().getEmail());
+            
+            // Set new fields for assumptions and additional form data
+            response.setAssumption1(initiative.getAssumption1());
+            response.setAssumption2(initiative.getAssumption2());
+            response.setAssumption3(initiative.getAssumption3());
+            response.setBaselineData(initiative.getBaselineData());
+            response.setTargetOutcome(initiative.getTargetOutcome());
+            response.setTargetValue(initiative.getTargetValue());
+            response.setConfidenceLevel(initiative.getConfidenceLevel());
+            response.setEstimatedCapex(initiative.getEstimatedCapex());
+            response.setBudgetType(initiative.getBudgetType());
             
             return ResponseEntity.ok(new ApiResponse(true, "Initiative created successfully", response));
         } catch (Exception e) {

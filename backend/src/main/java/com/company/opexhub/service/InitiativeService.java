@@ -1,18 +1,19 @@
 package com.company.opexhub.service;
 
-import com.company.opexhub.dto.InitiativeRequest;
-import com.company.opexhub.entity.Initiative;
-import com.company.opexhub.entity.User;
-import com.company.opexhub.repository.InitiativeRepository;
-import com.company.opexhub.repository.UserRepository;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import com.company.opexhub.dto.InitiativeRequest;
+import com.company.opexhub.entity.Initiative;
+import com.company.opexhub.entity.User;
+import com.company.opexhub.repository.InitiativeRepository;
+import com.company.opexhub.repository.UserRepository;
 
 @Service
 public class InitiativeService {
@@ -79,6 +80,17 @@ public class InitiativeService {
         initiative.setRequiresMoc(request.getRequiresMoc());
         initiative.setRequiresCapex(request.getRequiresCapex());
         
+        // Set new fields for assumptions and additional form data
+        initiative.setAssumption1(request.getAssumption1());
+        initiative.setAssumption2(request.getAssumption2());
+        initiative.setAssumption3(request.getAssumption3());
+        initiative.setBaselineData(request.getBaselineData());
+        initiative.setTargetOutcome(request.getTargetOutcome());
+        initiative.setTargetValue(request.getTargetValue());
+        initiative.setConfidenceLevel(request.getConfidenceLevel());
+        initiative.setEstimatedCapex(request.getEstimatedCapex());
+        initiative.setBudgetType(request.getBudgetType());
+        
         // Generate initiative number
         String initiativeNumber = generateInitiativeNumber(request.getSite(), request.getDiscipline());
         initiative.setInitiativeNumber(initiativeNumber);
@@ -142,6 +154,17 @@ public class InitiativeService {
         initiative.setEndDate(request.getEndDate());
         initiative.setRequiresMoc(request.getRequiresMoc());
         initiative.setRequiresCapex(request.getRequiresCapex());
+
+        // Update new fields for assumptions and additional form data
+        initiative.setAssumption1(request.getAssumption1());
+        initiative.setAssumption2(request.getAssumption2());
+        initiative.setAssumption3(request.getAssumption3());
+        initiative.setBaselineData(request.getBaselineData());
+        initiative.setTargetOutcome(request.getTargetOutcome());
+        initiative.setTargetValue(request.getTargetValue());
+        initiative.setConfidenceLevel(request.getConfidenceLevel());
+        initiative.setEstimatedCapex(request.getEstimatedCapex());
+        initiative.setBudgetType(request.getBudgetType());
 
         return initiativeRepository.save(initiative);
     }
