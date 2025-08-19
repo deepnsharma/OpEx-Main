@@ -369,12 +369,11 @@ export default function Initiatives({ user }: InitiativesProps) {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-8 px-3 text-xs hover:bg-green-600 hover:text-white transition-colors min-w-[70px]"
+                            className="h-8 w-8 p-0 hover:bg-green-600 hover:text-white transition-colors"
                             onClick={() => handleDownloadForm(initiative)}
                             title="Download Initiative Form"
                           >
-                            <Download className="h-3 w-3 mr-1" />
-                            Download
+                            <Download className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -460,12 +459,11 @@ export default function Initiatives({ user }: InitiativesProps) {
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        className="h-7 px-2 text-xs hover:bg-green-600 hover:text-white min-w-[60px]"
+                        className="h-7 w-7 p-0 hover:bg-green-600 hover:text-white"
                         onClick={() => handleDownloadForm(initiative)}
                         title="Download Form"
                       >
-                        <Download className="h-3 w-3 mr-1" />
-                        Download
+                        <Download className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>

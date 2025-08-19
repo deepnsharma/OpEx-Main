@@ -340,6 +340,9 @@ public class ReportsService {
         // Initiative Title
         createFormRow(formTable, "Initiative Title:", initiative.getTitle() != null ? initiative.getTitle() : "");
         
+        // Initiative Number
+        createFormRow(formTable, "Initiative Number:", initiative.getInitiativeNumber() != null ? initiative.getInitiativeNumber() : "");
+        
         // Initiator Name
         String initiatorName = "";
         if (initiative.getInitiatorName() != null && !initiative.getInitiatorName().isEmpty()) {
@@ -411,14 +414,22 @@ public class ReportsService {
         
         // Header row
         XWPFTableRow headerRow = signatureTable.createRow();
-        setCellText(headerRow.getCell(0), "", true);
-        setCellText(headerRow.addNewTableCell(), "Name", true);
-        setCellText(headerRow.addNewTableCell(), "Designation", true);
-        setCellText(headerRow.addNewTableCell(), "Sign", true);
-        setCellText(headerRow.addNewTableCell(), "Date", true);
+        // Ensure we have enough cells for the header
+        while (headerRow.getTableCells().size() < 5) {
+            headerRow.addNewTableCell();
+        }
+        setCellText(headerRow.getCell(0), "", true); // Empty cell for row labels
+        setCellText(headerRow.getCell(1), "Name", true);
+        setCellText(headerRow.getCell(2), "Designation", true);
+        setCellText(headerRow.getCell(3), "Sign", true);
+        setCellText(headerRow.getCell(4), "Date", true);
         
         // Initiated by row
         XWPFTableRow initiatedRow = signatureTable.createRow();
+        // Ensure we have enough cells before accessing them
+        while (initiatedRow.getTableCells().size() < 5) {
+            initiatedRow.addNewTableCell();
+        }
         setCellText(initiatedRow.getCell(0), "Initiated by", true);
         setCellText(initiatedRow.getCell(1), initiatorName, false); // Fill with initiator name
         setCellText(initiatedRow.getCell(2), "Site TSD", false);
@@ -427,22 +438,34 @@ public class ReportsService {
         
         // Reviewed by row
         XWPFTableRow reviewedRow = signatureTable.createRow();
+        // Ensure we have enough cells before accessing them
+        while (reviewedRow.getTableCells().size() < 5) {
+            reviewedRow.addNewTableCell();
+        }
         setCellText(reviewedRow.getCell(0), "Reviewed by", true);
         setCellText(reviewedRow.getCell(1), "", false);
         setCellText(reviewedRow.getCell(2), "Unit Head", false);
         setCellText(reviewedRow.getCell(3), "", false);
         setCellText(reviewedRow.getCell(4), "", false);
         
-        // Approved by row
+        // First Approved by row (Corp. TSD)
         XWPFTableRow approvedRow = signatureTable.createRow();
+        // Ensure we have enough cells before accessing them
+        while (approvedRow.getTableCells().size() < 5) {
+            approvedRow.addNewTableCell();
+        }
         setCellText(approvedRow.getCell(0), "Approved by", true);
         setCellText(approvedRow.getCell(1), "", false);
         setCellText(approvedRow.getCell(2), "Corp. TSD", false);
         setCellText(approvedRow.getCell(3), "", false);
         setCellText(approvedRow.getCell(4), "", false);
         
-        // Another approved by row
+        // Second Approved by row (CMO)
         XWPFTableRow approved2Row = signatureTable.createRow();
+        // Ensure we have enough cells before accessing them
+        while (approved2Row.getTableCells().size() < 5) {
+            approved2Row.addNewTableCell();
+        }
         setCellText(approved2Row.getCell(0), "Approved by", true);
         setCellText(approved2Row.getCell(1), "", false);
         setCellText(approved2Row.getCell(2), "CMO", false);
@@ -460,26 +483,41 @@ public class ReportsService {
     private void createFormRow(XWPFTable table, String label, String value) {
         XWPFTableRow row = table.createRow();
         
+        // Ensure we have at least 2 cells
+        while (row.getTableCells().size() < 2) {
+            row.addNewTableCell();
+        }
+        
         // Label cell (left column) - blue background
         XWPFTableCell labelCell = row.getCell(0);
-        setCellText(labelCell, label, true);
-        labelCell.setColor("4F81BD"); // Blue background
+        if (labelCell != null) {
+            setCellText(labelCell, label, true); // setCellText will handle the blue background
+        }
         
         // Value cell (right column)
         XWPFTableCell valueCell = row.getCell(1);
-        if (valueCell == null) {
-            valueCell = row.addNewTableCell();
+        if (valueCell != null) {
+            setCellText(valueCell, value, false);
         }
-        setCellText(valueCell, value, false);
     }
     
     private void setCellText(XWPFTableCell cell, String text, boolean bold) {
-        XWPFParagraph para = cell.getParagraphs().get(0);
+        if (cell == null) {
+            return; // Safety check for null cells
+        }
+        
+        // Clear existing paragraphs and create fresh content
+        cell.removeParagraph(0);
+        XWPFParagraph para = cell.addParagraph();
+        para.setAlignment(ParagraphAlignment.LEFT);
+        
         XWPFRun run = para.createRun();
-        run.setText(text);
+        run.setText(text != null ? text : "");
         run.setBold(bold);
+        
         if (bold) {
             run.setColor("FFFFFF"); // White text for headers
+            cell.setColor("4F81BD"); // Blue background for headers
         }
         run.setFontSize(10);
     }

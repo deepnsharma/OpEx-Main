@@ -31,6 +31,34 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
   const { data: workflowTransactions = [], refetch: refetchTransactions } = useWorkflowTransactions(selectedInitiative || 0);
   const processStageAction = useProcessStageAction();
   
+  // Function to get stage name from workflow transactions
+  const getStageName = (stageNumber: number, initiativeId?: number) => {
+    // If we have an initiative ID and it's the selected one, use workflow transactions
+    if (initiativeId && initiativeId === selectedInitiative && workflowTransactions.length > 0) {
+      const transaction = workflowTransactions.find((t: any) => t.stageNumber === stageNumber);
+      if (transaction && transaction.stageName) {
+        return transaction.stageName;
+      }
+    }
+    
+    // Fallback to hardcoded stage names based on stage number
+    const stageNames: { [key: number]: string } = {
+      1: "Register Initiative",
+      2: "Approval", 
+      3: "Define Responsibilities",
+      4: "MOC Stage",
+      5: "CAPEX Stage",
+      6: "Initiative Timeline Tracker",
+      7: "Trial Implementation & Performance Check",
+      8: "Periodic Status Review with CMO",
+      9: "Savings Monitoring (1 Month)",
+      10: "Saving Validation with F&A", 
+      11: "Initiative Closure"
+    };
+    
+    return stageNames[stageNumber] || `Stage ${stageNumber}`;
+  };
+  
   // Mock data fallback
   const mockInitiatives = [
     {
@@ -180,7 +208,7 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
                             </div>
                             <div>
                               <span className="text-muted-foreground">Current Stage:</span>
-                              <p className="font-medium">Stage {initiative.currentStage || 1}</p>
+                              <p className="font-medium">{getStageName(initiative.currentStage || 1, initiative.id)}</p>
                             </div>
                             <div>
                               <span className="text-muted-foreground">Expected Savings:</span>
@@ -433,7 +461,7 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
                             </div>
                             <div>
                               <span className="text-muted-foreground">Current Stage:</span>
-                              <p className="font-medium">Stage {initiative.currentStage || 1}</p>
+                              <p className="font-medium">{getStageName(initiative.currentStage || 1, initiative.id)}</p>
                             </div>
                             <div>
                               <span className="text-muted-foreground">Expected Savings:</span>

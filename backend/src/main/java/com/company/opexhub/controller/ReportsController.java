@@ -50,6 +50,11 @@ public class ReportsController {
     @GetMapping("/export/initiative-form/{initiativeId}")
     public ResponseEntity<ByteArrayResource> exportInitiativeForm(@PathVariable String initiativeId) {
         try {
+            // Validate initiative ID
+            if (initiativeId == null || initiativeId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            
             // Generate the Word document for the initiative
             ByteArrayOutputStream outputStream = reportsService.generateInitiativeForm(initiativeId);
             
@@ -66,7 +71,13 @@ public class ReportsController {
                     .contentLength(resource.contentLength())
                     .body(resource);
                     
+        } catch (IllegalArgumentException e) {
+            // Initiative not found
+            System.err.println("Initiative not found: " + e.getMessage());
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
+            // Log the full stack trace for debugging
+            System.err.println("Error generating initiative form for ID: " + initiativeId);
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
