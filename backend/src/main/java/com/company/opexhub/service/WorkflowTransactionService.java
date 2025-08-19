@@ -1,22 +1,23 @@
 package com.company.opexhub.service;
 
-import com.company.opexhub.entity.Initiative;
-import com.company.opexhub.entity.User;
-import com.company.opexhub.entity.WorkflowTransaction;
-import com.company.opexhub.entity.WfMaster;
-import com.company.opexhub.dto.WorkflowTransactionDetailDTO;
-import com.company.opexhub.repository.InitiativeRepository;
-import com.company.opexhub.repository.UserRepository;
-import com.company.opexhub.repository.WorkflowTransactionRepository;
-import com.company.opexhub.repository.WfMasterRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.company.opexhub.dto.WorkflowTransactionDetailDTO;
+import com.company.opexhub.entity.Initiative;
+import com.company.opexhub.entity.User;
+import com.company.opexhub.entity.WfMaster;
+import com.company.opexhub.entity.WorkflowTransaction;
+import com.company.opexhub.repository.InitiativeRepository;
+import com.company.opexhub.repository.UserRepository;
+import com.company.opexhub.repository.WfMasterRepository;
+import com.company.opexhub.repository.WorkflowTransactionRepository;
 
 @Service
 public class WorkflowTransactionService {
@@ -325,7 +326,7 @@ public class WorkflowTransactionService {
         // Create IL stages 4, 5, 6 dynamically with the selected IL
         String[][] ilStages = {
             {"4", "MOC Stage", "IL"},
-            {"5", "CAPEX Stage", "IL"},
+            // {"5", "CAPEX Stage", "IL"},
             {"6", "Initiative Timeline Tracker", "IL"}
         };
         

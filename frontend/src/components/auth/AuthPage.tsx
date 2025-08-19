@@ -29,11 +29,10 @@ const disciplines = [
 ];
 
 const roles = [
-  { code: "INIT_LEAD", name: "Initiative Lead" },
-  { code: "APPROVER", name: "Approver" },
-  { code: "SITE_TSO_LEAD", name: "Site TSO Lead" },
-  { code: "CORP_TSO", name: "Corp TSO" },
-  { code: "SITE_CORP_TSO", name: "Site & Corp TSO" }
+  { code: "IL", name: "Initiative Lead" },
+  { code: "STLD", name: "Site TSD Lead" },
+  { code: "EH", name: "Engineering Head" },
+  { code: "CTSD", name: "Corp TSD" }
 ];
 
 interface AuthProps {
