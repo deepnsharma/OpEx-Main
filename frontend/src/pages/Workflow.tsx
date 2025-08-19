@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { User } from "@/lib/mockData";
 import { useInitiatives } from "@/hooks/useInitiatives";
 import { useWorkflowStages, usePendingApprovals, useApproveStage, useRejectStage } from "@/hooks/useWorkflowStages";
@@ -12,6 +13,7 @@ import { CheckCircle, XCircle, Clock, User as UserIcon, ArrowLeft } from "lucide
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
 import { DynamicWorkflowTracker } from "@/components/workflow/DynamicWorkflowTracker";
+import { handlePostApprovalRedirect } from "@/lib/workflowUtils";
 
 interface WorkflowProps {
   user: User;
@@ -22,6 +24,7 @@ export default function Workflow({ user }: WorkflowProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [comments, setComments] = useState<{ [key: number]: string }>({});
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const { data: initiativesData } = useInitiatives();
   const { data: workflowStages = [], refetch: refetchStages } = useWorkflowStages(selectedInitiative || 0);
@@ -62,10 +65,23 @@ export default function Workflow({ user }: WorkflowProps) {
     approveStage.mutate(
       { stageId, comments: comments[stageId] || '' },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
           toast({ title: "Stage approved successfully" });
           refetchStages();
           setComments(prev => ({ ...prev, [stageId]: '' }));
+          
+          // Find the approved stage to get stage number
+          const approvedStage = workflowStages.find((stage: any) => stage.id === stageId);
+          
+          // Handle post-approval redirection
+          if (approvedStage) {
+            handlePostApprovalRedirect(
+              approvedStage.stageNumber,
+              user.role,
+              navigate,
+              toast
+            );
+          }
         },
         onError: () => {
           toast({ title: "Error approving stage", variant: "destructive" });

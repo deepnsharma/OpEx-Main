@@ -260,96 +260,180 @@ export default function Initiatives({ user }: InitiativesProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-24">ID</TableHead>
-                   <TableHead className="min-w-48">Initiative & Discipline</TableHead>
-                   <TableHead className="w-20">Site</TableHead>
-                   <TableHead className="w-32">Status</TableHead>
-                   <TableHead className="w-24">Priority</TableHead>
-                   <TableHead className="w-32">Expected Savings</TableHead>
-                   <TableHead className="w-32">Current Stage</TableHead>
-                   <TableHead className="w-24">Progress</TableHead>
-                   <TableHead className="w-28">Last Updated</TableHead>
-                   <TableHead className="w-20">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedData.data.map((initiative: Initiative) => (
-                  <TableRow key={initiative.id} className="hover:bg-muted/50">
-                    <TableCell className="p-3">
-                      <Badge variant="outline" className="font-mono text-xs px-2 py-1">
-                        {initiative.id}
-                      </Badge>
-                    </TableCell>
-                     <TableCell className="p-3">
-                       <div className="space-y-1">
-                         <p className="font-medium text-sm leading-tight">{initiative.initiativeNumber || initiative.title}</p>
-                         <p className="text-xs text-muted-foreground">{initiative.discipline}</p>
-                       </div>
-                     </TableCell>
-                    <TableCell className="p-3">
-                      <Badge variant="outline" className="text-xs px-2 py-1">{initiative.site}</Badge>
-                    </TableCell>
-                    <TableCell className="p-3">
-                      <Badge className={`${getStatusColor(initiative.status)} text-xs px-2 py-1`}>
-                        {initiative.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="p-3">
-                      <Badge className={`${getPriorityColor(initiative.priority)} text-xs px-2 py-1`}>
-                        {initiative.priority}
-                      </Badge>
-                    </TableCell>
-                     <TableCell className="p-3">
-                       <span className="font-semibold text-success text-sm">
-                         {formatCurrency(initiative.expectedSavings)}
-                       </span>
-                     </TableCell>
-                     <TableCell className="p-3">
-                       <CurrentStage 
-                         initiativeId={initiative.id} 
-                         fallbackStage={initiative.currentStage} 
-                       />
-                     </TableCell>
-                     <TableCell className="p-3">
-                       <InitiativeProgress 
-                         initiativeId={initiative.id} 
-                         fallbackProgress={initiative.progress} 
-                       />
-                     </TableCell>
-                    <TableCell className="p-3">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        <span className="truncate">{initiative.lastUpdated}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="p-3">
-                      <div className="flex items-center gap-1">
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="h-7 w-7 p-0"
-                          onClick={() => handleViewInitiative(initiative)}
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="h-7 w-7 p-0"
-                          onClick={() => handleEditInitiative(initiative)}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          {/* Desktop Table View */}
+          <div className="hidden lg:block">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-20">ID</TableHead>
+                     <TableHead className="min-w-44">Initiative & Discipline</TableHead>
+                     <TableHead className="w-16">Site</TableHead>
+                     <TableHead className="w-28">Status</TableHead>
+                     <TableHead className="w-20">Priority</TableHead>
+                     <TableHead className="w-28">Expected Savings</TableHead>
+                     <TableHead className="w-28">Current Stage</TableHead>
+                     <TableHead className="w-20">Progress</TableHead>
+                     <TableHead className="w-24">Last Updated</TableHead>
+                     <TableHead className="w-32">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedData.data.map((initiative: Initiative) => (
+                    <TableRow key={initiative.id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell className="p-3">
+                        <Badge variant="outline" className="font-mono text-xs px-2 py-1">
+                          {initiative.id}
+                        </Badge>
+                      </TableCell>
+                       <TableCell className="p-3">
+                         <div className="space-y-1">
+                           <p className="font-medium text-sm leading-tight">{initiative.initiativeNumber || initiative.title}</p>
+                           <p className="text-xs text-muted-foreground">{initiative.discipline}</p>
+                         </div>
+                       </TableCell>
+                      <TableCell className="p-3">
+                        <Badge variant="outline" className="text-xs px-2 py-1">{initiative.site}</Badge>
+                      </TableCell>
+                      <TableCell className="p-3">
+                        <Badge className={`${getStatusColor(initiative.status)} text-xs px-2 py-1`}>
+                          {initiative.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="p-3">
+                        <Badge className={`${getPriorityColor(initiative.priority)} text-xs px-2 py-1`}>
+                          {initiative.priority}
+                        </Badge>
+                      </TableCell>
+                       <TableCell className="p-3">
+                         <span className="font-semibold text-success text-sm">
+                           {formatCurrency(initiative.expectedSavings)}
+                         </span>
+                       </TableCell>
+                       <TableCell className="p-3">
+                         <CurrentStage 
+                           initiativeId={initiative.id} 
+                           fallbackStage={initiative.currentStage} 
+                         />
+                       </TableCell>
+                       <TableCell className="p-3">
+                         <InitiativeProgress 
+                           initiativeId={initiative.id} 
+                           fallbackProgress={initiative.progress} 
+                         />
+                       </TableCell>
+                      <TableCell className="p-3">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3" />
+                          <span className="truncate">{initiative.lastUpdated}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="p-3">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-8 px-3 text-xs hover:bg-primary hover:text-primary-foreground transition-colors"
+                            onClick={() => handleViewInitiative(initiative)}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-8 px-3 text-xs hover:bg-secondary hover:text-secondary-foreground transition-colors"
+                            onClick={() => handleEditInitiative(initiative)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Mobile/Tablet Card View */}
+          <div className="lg:hidden space-y-4">
+            {paginatedData.data.map((initiative: Initiative) => (
+              <Card key={initiative.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-sm">{initiative.initiativeNumber || initiative.title}</h3>
+                      <p className="text-xs text-muted-foreground">{initiative.discipline} • {initiative.site}</p>
+                    </div>
+                    <Badge variant="outline" className="font-mono text-xs">
+                      {initiative.id}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Status</p>
+                        <Badge className={`${getStatusColor(initiative.status)} text-xs`}>
+                          {initiative.status}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Priority</p>
+                        <Badge className={`${getPriorityColor(initiative.priority)} text-xs`}>
+                          {initiative.priority}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Expected Savings</p>
+                        <p className="font-semibold text-success text-sm">
+                          {formatCurrency(initiative.expectedSavings)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Progress</p>
+                        <InitiativeProgress 
+                          initiativeId={initiative.id} 
+                          fallbackProgress={initiative.progress} 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      <span>Updated: {initiative.lastUpdated}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-7 px-2 text-xs hover:bg-primary hover:text-primary-foreground"
+                        onClick={() => handleViewInitiative(initiative)}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-7 px-2 text-xs hover:bg-secondary hover:text-secondary-foreground"
+                        onClick={() => handleEditInitiative(initiative)}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* Pagination */}

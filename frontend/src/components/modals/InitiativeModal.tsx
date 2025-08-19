@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,24 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Eye, Edit, Save, X, Calendar, MapPin, Target, DollarSign } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  Eye, 
+  Edit, 
+  Save, 
+  X, 
+  Calendar, 
+  MapPin, 
+  Target, 
+  DollarSign, 
+  FileText, 
+  Settings,
+  Clock,
+  User,
+  CheckCircle2
+} from 'lucide-react';
 import { useProgressPercentage, useCurrentPendingStage } from '@/hooks/useWorkflowTransactions';
 
 interface Initiative {
@@ -62,6 +79,14 @@ const WORKFLOW_STAGE_NAMES: { [key: number]: string } = {
 export default function InitiativeModal({ isOpen, onClose, initiative, mode, onSave }: InitiativeModalProps) {
   const [isEditing, setIsEditing] = useState(mode === 'edit');
   const [formData, setFormData] = useState<any>(initiative || {});
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // Update formData when initiative changes
+  useEffect(() => {
+    if (initiative) {
+      setFormData(initiative);
+    }
+  }, [initiative]);
 
   // Get real progress and current stage data
   const { data: progressData } = useProgressPercentage(Number(initiative?.id));
@@ -112,31 +137,38 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-5xl max-h-[85vh] p-0">
+        <DialogHeader className="px-6 py-4 border-b bg-gradient-to-r from-primary/5 to-secondary/5">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {isEditing ? <Edit className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              <span>
-                {isEditing ? 'Edit Initiative' : 'View Initiative'} - {initiative.initiativeNumber || initiative.title}
-              </span>
+              <div className="p-2 rounded-lg bg-primary/10">
+                {isEditing ? <Edit className="h-5 w-5 text-primary" /> : <Eye className="h-5 w-5 text-primary" />}
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">
+                  {isEditing ? 'Edit Initiative' : 'Initiative Details'}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {initiative?.initiativeNumber || `ID: ${initiative?.id}`}
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {!isEditing && mode !== 'edit' && (
-                <Button variant="outline" onClick={() => setIsEditing(true)}>
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
               )}
               {isEditing && (
                 <>
-                  <Button variant="outline" onClick={handleCancel}>
+                  <Button variant="outline" size="sm" onClick={handleCancel}>
                     <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
-                  <Button onClick={handleSave}>
+                  <Button size="sm" onClick={handleSave}>
                     <Save className="h-4 w-4 mr-2" />
-                    Save
+                    Save Changes
                   </Button>
                 </>
               )}
@@ -144,249 +176,419 @@ export default function InitiativeModal({ isOpen, onClose, initiative, mode, onS
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Status and Progress Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Status & Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <Badge className={getStatusColor(initiative.status)}>
-                      {initiative.status}
-                    </Badge>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Priority</p>
-                    <Badge className={getPriorityColor(initiative.priority)}>
-                      {initiative.priority}
-                    </Badge>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Progress</span>
-                    <span>{actualProgress}%</span>
-                  </div>
-                  <Progress value={actualProgress} className="h-2" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Current Stage</p>
-                  <p className="font-medium">{currentStageName}</p>
-                </div>
-              </CardContent>
-            </Card>
+        <ScrollArea className="flex-1 p-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="details" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Details
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Financial Impact
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Expected Savings</p>
-                  <p className="text-lg font-semibold text-success">
-                    {typeof initiative.expectedSavings === 'number' 
-                      ? `₹${initiative.expectedSavings.toLocaleString()}` 
-                      : initiative.expectedSavings}
-                  </p>
-                </div>
-                {initiative.actualSavings && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Actual Savings</p>
-                    <p className="text-lg font-semibold text-success">
-                      {typeof initiative.actualSavings === 'number' 
-                        ? `₹${initiative.actualSavings.toLocaleString()}` 
-                        : initiative.actualSavings}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+            <TabsContent value="overview" className="mt-6 space-y-6">
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="border-l-4 border-l-primary">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Target className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Status</p>
+                        <Badge className={`${getStatusColor(initiative?.status || '')} mt-1`}>
+                          {initiative?.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Basic Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Initiative Number</Label>
-                  <Input
-                    value={formData.initiativeNumber || ''}
-                    disabled={!isEditing}
-                    onChange={(e) => setFormData({ ...formData, initiativeNumber: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Title</Label>
-                  <Input
-                    value={formData.title || ''}
-                    disabled={!isEditing}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Site</Label>
-                  {isEditing ? (
-                    <Select value={formData.site} onValueChange={(value) => setFormData({ ...formData, site: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="NDS">NDS</SelectItem>
-                        <SelectItem value="HSD1">HSD1</SelectItem>
-                        <SelectItem value="HSD2">HSD2</SelectItem>
-                        <SelectItem value="HSD3">HSD3</SelectItem>
-                        <SelectItem value="DHJ">DHJ</SelectItem>
-                        <SelectItem value="APL">APL</SelectItem>
-                        <SelectItem value="TCD">TCD</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input value={formData.site || ''} disabled />
-                  )}
-                </div>
-                <div>
-                  <Label>Discipline</Label>
-                  {isEditing ? (
-                    <Select value={formData.discipline} onValueChange={(value) => setFormData({ ...formData, discipline: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="OP">Operations</SelectItem>
-                        <SelectItem value="MT">Maintenance</SelectItem>
-                        <SelectItem value="EG">Engineering</SelectItem>
-                        <SelectItem value="QA">Quality Assurance</SelectItem>
-                        <SelectItem value="SF">Safety</SelectItem>
-                        <SelectItem value="ENV">Environment</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input value={formData.discipline || ''} disabled />
-                  )}
-                </div>
-                <div>
-                  <Label>Priority</Label>
-                  {isEditing ? (
-                    <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input value={formData.priority || ''} disabled />
-                  )}
-                </div>
-                <div>
-                  <Label>Expected Savings (₹)</Label>
-                  <Input
-                    value={formData.expectedSavings || ''}
-                    disabled={!isEditing}
-                    onChange={(e) => setFormData({ ...formData, expectedSavings: e.target.value })}
-                  />
-                </div>
+                <Card className="border-l-4 border-l-green-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-100 rounded-lg">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Expected</p>
+                        <p className="font-semibold text-green-600">
+                          {typeof initiative?.expectedSavings === 'number' 
+                            ? `₹${initiative.expectedSavings.toLocaleString()}` 
+                            : initiative?.expectedSavings}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-blue-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Clock className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Progress</p>
+                        <p className="font-semibold text-blue-600">{actualProgress}%</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-purple-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <MapPin className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Site</p>
+                        <p className="font-semibold">{initiative?.site}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
-              <div>
-                <Label>Description</Label>
-                <Textarea
-                  value={formData.description || ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                />
+              {/* Progress and Stage Information */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Target className="h-5 w-5" />
+                      Progress Overview
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="font-medium">Completion Status</span>
+                        <span className="font-semibold">{actualProgress}%</span>
+                      </div>
+                      <Progress value={actualProgress} className="h-3" />
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Current Stage</p>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          Stage {initiative?.currentStage || 1}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">{currentStageName}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Calendar className="h-5 w-5" />
+                      Timeline Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Submitted</p>
+                        <p className="font-medium">{initiative?.submittedDate}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Last Updated</p>
+                        <p className="font-medium">{initiative?.lastUpdated}</p>
+                      </div>
+                    </div>
+                    <Separator />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Priority Level</p>
+                      <Badge className={`${getPriorityColor(initiative?.priority || '')} mt-1`}>
+                        {initiative?.priority}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Start Date</Label>
-                  <Input
-                    type="date"
-                    value={formData.startDate || ''}
-                    disabled={!isEditing}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>End Date</Label>
-                  <Input
-                    type="date"
-                    value={formData.endDate || ''}
-                    disabled={!isEditing}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Additional Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Additional Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Created By</p>
-                  <p className="font-medium">{initiative.createdByName || 'N/A'}</p>
-                  {initiative.createdByEmail && (
-                    <p className="text-sm text-muted-foreground">{initiative.createdByEmail}</p>
-                  )}
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Submitted Date</p>
-                  <p className="font-medium">{initiative.submittedDate}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Last Updated</p>
-                  <p className="font-medium">{initiative.lastUpdated}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Current Stage</p>
-                  <p className="font-medium">Stage {initiative.currentStage || 1}: {currentStageName}</p>
-                </div>
-              </div>
-
-              {(initiative.requiresMoc || initiative.requiresCapex) && (
-                <div className="pt-4 border-t">
-                  <p className="text-sm font-medium mb-2">Requirements</p>
-                  <div className="flex gap-4">
-                    {initiative.requiresMoc && (
-                      <Badge variant="outline">MoC Required</Badge>
-                    )}
-                    {initiative.requiresCapex && (
-                      <Badge variant="outline">CAPEX Required</Badge>
+              {/* Initiative Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FileText className="h-5 w-5" />
+                    Initiative Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="font-semibold text-lg">{initiative?.title}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {initiative?.discipline} • {initiative?.site}
+                      </p>
+                    </div>
+                    {initiative?.description && (
+                      <>
+                        <Separator />
+                        <div>
+                          <p className="text-sm font-medium mb-2">Description</p>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {initiative.description}
+                          </p>
+                        </div>
+                      </>
                     )}
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="details" className="mt-6 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Basic Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="initiativeNumber" className="text-sm font-medium">
+                        Initiative Number
+                      </Label>
+                      <Input
+                        id="initiativeNumber"
+                        value={formData.initiativeNumber || ''}
+                        disabled={!isEditing}
+                        onChange={(e) => setFormData({ ...formData, initiativeNumber: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="title" className="text-sm font-medium">
+                        Title *
+                      </Label>
+                      <Input
+                        id="title"
+                        value={formData.title || ''}
+                        disabled={!isEditing}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="site" className="text-sm font-medium">
+                        Site *
+                      </Label>
+                      {isEditing ? (
+                        <Select value={formData.site} onValueChange={(value) => setFormData({ ...formData, site: value })}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="NDS">NDS</SelectItem>
+                            <SelectItem value="HSD1">HSD1</SelectItem>
+                            <SelectItem value="HSD2">HSD2</SelectItem>
+                            <SelectItem value="HSD3">HSD3</SelectItem>
+                            <SelectItem value="DHJ">DHJ</SelectItem>
+                            <SelectItem value="APL">APL</SelectItem>
+                            <SelectItem value="TCD">TCD</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input value={formData.site || ''} disabled className="mt-1" />
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="discipline" className="text-sm font-medium">
+                        Discipline *
+                      </Label>
+                      {isEditing ? (
+                        <Select value={formData.discipline} onValueChange={(value) => setFormData({ ...formData, discipline: value })}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="OP">Operations</SelectItem>
+                            <SelectItem value="MT">Maintenance</SelectItem>
+                            <SelectItem value="EG">Engineering</SelectItem>
+                            <SelectItem value="QA">Quality Assurance</SelectItem>
+                            <SelectItem value="SF">Safety</SelectItem>
+                            <SelectItem value="ENV">Environment</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input value={formData.discipline || ''} disabled className="mt-1" />
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="priority" className="text-sm font-medium">
+                        Priority *
+                      </Label>
+                      {isEditing ? (
+                        <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="High">High</SelectItem>
+                            <SelectItem value="Medium">Medium</SelectItem>
+                            <SelectItem value="Low">Low</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input value={formData.priority || ''} disabled className="mt-1" />
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="expectedSavings" className="text-sm font-medium">
+                        Expected Savings (₹)
+                      </Label>
+                      <Input
+                        id="expectedSavings"
+                        value={formData.expectedSavings || ''}
+                        disabled={!isEditing}
+                        onChange={(e) => setFormData({ ...formData, expectedSavings: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="description" className="text-sm font-medium">
+                      Description
+                    </Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description || ''}
+                      disabled={!isEditing}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={4}
+                      className="mt-1"
+                      placeholder="Provide a detailed description of the initiative..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="startDate" className="text-sm font-medium">
+                        Start Date
+                      </Label>
+                      <Input
+                        id="startDate"
+                        type="date"
+                        value={formData.startDate || ''}
+                        disabled={!isEditing}
+                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="endDate" className="text-sm font-medium">
+                        End Date
+                      </Label>
+                      <Input
+                        id="endDate"
+                        type="date"
+                        value={formData.endDate || ''}
+                        disabled={!isEditing}
+                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-6 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Creator Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Created By</p>
+                      <p className="font-medium">{initiative?.createdByName || 'Unknown User'}</p>
+                      {initiative?.createdByEmail && (
+                        <p className="text-sm text-muted-foreground">{initiative.createdByEmail}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Submitted Date</p>
+                      <p className="font-medium">{initiative?.submittedDate}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Last Updated</p>
+                      <p className="font-medium">{initiative?.lastUpdated}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Initiative ID</p>
+                      <p className="font-medium font-mono">{initiative?.id}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5" />
+                    Requirements & Approvals
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium mb-3">Special Requirements</p>
+                      <div className="flex flex-wrap gap-2">
+                        {initiative?.requiresMoc && (
+                          <Badge variant="outline" className="flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            MoC Required
+                          </Badge>
+                        )}
+                        {initiative?.requiresCapex && (
+                          <Badge variant="outline" className="flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            CAPEX Required
+                          </Badge>
+                        )}
+                        {!initiative?.requiresMoc && !initiative?.requiresCapex && (
+                          <p className="text-sm text-muted-foreground">No special requirements</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div>
+                      <p className="text-sm font-medium mb-2">Current Workflow Stage</p>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">
+                          Stage {initiative?.currentStage || 1}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">{currentStageName}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

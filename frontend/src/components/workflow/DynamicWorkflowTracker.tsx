@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import WorkflowStageModal from './WorkflowStageModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { handlePostApprovalRedirect } from '@/lib/workflowUtils';
 
 interface DynamicWorkflowTrackerProps {
   initiativeId: number;
@@ -37,6 +39,7 @@ interface WorkflowTransactionDetail {
 
 export const DynamicWorkflowTracker: React.FC<DynamicWorkflowTrackerProps> = ({ initiativeId }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedTransaction, setSelectedTransaction] = useState<WorkflowTransactionDetail | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -105,6 +108,15 @@ export const DynamicWorkflowTracker: React.FC<DynamicWorkflowTrackerProps> = ({ 
       setIsModalOpen(false);
       setSelectedTransaction(null);
       refetch();
+      
+      // Handle post-approval redirection for approved actions only
+      if (data.action === 'approved' && user) {
+        handlePostApprovalRedirect(
+          selectedTransaction.stageNumber,
+          user.role,
+          navigate
+        );
+      }
     } catch (error) {
       toast.error(`Failed to ${data.action} stage: ${error}`);
     }
