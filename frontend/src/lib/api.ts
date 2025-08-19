@@ -365,4 +365,81 @@ export const monthlyMonitoringAPI = {
   }
 };
 
+// Reports API
+export const reportsAPI = {
+  downloadDetailedExcel: async (params?: { site?: string; year?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.site && params.site !== 'all') {
+      queryParams.append('site', params.site);
+    }
+    if (params?.year) {
+      queryParams.append('year', params.year);
+    }
+    
+    // Use authenticated axios request to download the file
+    const response = await api.get(`/reports/export/detailed-excel?${queryParams.toString()}`, {
+      responseType: 'blob', // Important: Tell axios to handle binary data
+    });
+    
+    // Create blob URL and trigger download
+    const blob = new Blob([response.data], { 
+      type: response.headers['content-type'] || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+    const url = window.URL.createObjectURL(blob);
+    
+    // Extract filename from Content-Disposition header if available
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = 'detailed-report.xlsx';
+    if (contentDisposition && contentDisposition.includes('filename=')) {
+      filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
+    }
+    
+    // Create temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up blob URL
+    window.URL.revokeObjectURL(url);
+    
+    return filename; // Return the filename for confirmation
+  },
+
+  downloadInitiativeForm: async (initiativeId: string) => {
+    // Use authenticated axios request to download the Word form
+    const response = await api.get(`/reports/export/initiative-form/${initiativeId}`, {
+      responseType: 'blob', // Important: Tell axios to handle binary data
+    });
+    
+    // Create blob URL and trigger download
+    const blob = new Blob([response.data], { 
+      type: response.headers['content-type'] || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+    });
+    const url = window.URL.createObjectURL(blob);
+    
+    // Extract filename from Content-Disposition header if available
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = 'initiative-form.docx';
+    if (contentDisposition && contentDisposition.includes('filename=')) {
+      filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
+    }
+    
+    // Create temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up blob URL
+    window.URL.revokeObjectURL(url);
+    
+    return filename; // Return the filename for confirmation
+  }
+};
+
 export default api;

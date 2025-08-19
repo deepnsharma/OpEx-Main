@@ -46,4 +46,29 @@ public class ReportsController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/export/initiative-form/{initiativeId}")
+    public ResponseEntity<ByteArrayResource> exportInitiativeForm(@PathVariable String initiativeId) {
+        try {
+            // Generate the Word document for the initiative
+            ByteArrayOutputStream outputStream = reportsService.generateInitiativeForm(initiativeId);
+            
+            // Create response with proper headers
+            ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
+            
+            // Generate filename
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String filename = String.format("Initiative_Form_%s_%s.docx", initiativeId, timestamp);
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                    .contentLength(resource.contentLength())
+                    .body(resource);
+                    
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

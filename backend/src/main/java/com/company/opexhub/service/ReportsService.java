@@ -7,6 +7,13 @@ import com.company.opexhub.repository.MonthlyMonitoringEntryRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -67,52 +74,59 @@ public class ReportsService {
         CellStyle headerStyle = createHeaderStyle(workbook);
         CellStyle titleStyle = createTitleStyle(workbook);
         CellStyle dataStyle = createDataStyle(workbook);
+        CellStyle dateStyle = createDateStyle(workbook);
         
         // Set column widths
-        sheet.setColumnWidth(0, 1000);  // Empty column
-        sheet.setColumnWidth(1, 2500);  // Sr. No.
-        sheet.setColumnWidth(2, 6000);  // Description
-        sheet.setColumnWidth(3, 3000);  // Category
-        sheet.setColumnWidth(4, 4000);  // Initiative No.
-        sheet.setColumnWidth(5, 3000);  // Initiation Date
-        sheet.setColumnWidth(6, 3500);  // Initiative Leader
-        sheet.setColumnWidth(7, 3000);  // Target Date
-        sheet.setColumnWidth(8, 4000);  // Modification/CAPEX Cost
-        sheet.setColumnWidth(9, 3500);  // Current Status
-        sheet.setColumnWidth(10, 4000); // Expected Savings
-        sheet.setColumnWidth(11, 4000); // Actual Savings
-        sheet.setColumnWidth(12, 4500); // Annualized Value
-        sheet.setColumnWidth(13, 3000); // Remarks
+        sheet.setColumnWidth(0, 2500);  // Sr. No. (Column A)
+        sheet.setColumnWidth(1, 6000);  // Description (Column B)
+        sheet.setColumnWidth(2, 3000);  // Category (Column C)
+        sheet.setColumnWidth(3, 4000);  // Initiative No. (Column D)
+        sheet.setColumnWidth(4, 3000);  // Initiation Date (Column E)
+        sheet.setColumnWidth(5, 3500);  // Initiative Leader (Column F)
+        sheet.setColumnWidth(6, 3000);  // Target Date (Column G)
+        sheet.setColumnWidth(7, 4000);  // Modification/CAPEX Cost (Column H)
+        sheet.setColumnWidth(8, 3500);  // Current Status (Column I)
+        sheet.setColumnWidth(9, 4000);  // Expected Savings (Column J)
+        sheet.setColumnWidth(10, 4000); // Actual Savings (Column K)
+        sheet.setColumnWidth(11, 4500); // Annualized Value (Column L)
+        sheet.setColumnWidth(12, 3000); // Remarks (Column M)
         
         int rowNum = 0;
         
-        // Row 1: Empty
-        Row emptyRow = sheet.createRow(rowNum++);
-        
-        // Row 2: Title
+        // Row 1 (A1): Title - INITIATIVE TRACKER SHEET
         Row titleRow = sheet.createRow(rowNum++);
-        Cell titleCell = titleRow.createCell(1);
+        Cell titleCell = titleRow.createCell(0);
         titleCell.setCellValue("INITIATIVE TRACKER SHEET");
         titleCell.setCellStyle(titleStyle);
+        // Merge cells A1 to M1 for title
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 12));
         
-        // Row 3: Tracker updated date
+        // Row 2: Empty
+        Row emptyRow1 = sheet.createRow(rowNum++);
+        
+        // Row 3 (A3): Tracker updated on Date with form reference
         Row dateRow = sheet.createRow(rowNum++);
-        Cell dateLabelCell = dateRow.createCell(1);
+        Cell dateLabelCell = dateRow.createCell(0);
         dateLabelCell.setCellValue("Tracker updated on Date:");
-        dateLabelCell.setCellStyle(dataStyle);
+        dateLabelCell.setCellStyle(dateStyle);
         
-        // Add form reference in the corner
-        Cell formRefCell = dateRow.createCell(12);
+        // Add current date in next cell (B3)
+        Cell currentDateCell = dateRow.createCell(1);
+        currentDateCell.setCellValue(LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+        currentDateCell.setCellStyle(dateStyle);
+        
+        // Add form reference in the right corner (L3)
+        Cell formRefCell = dateRow.createCell(11);
         formRefCell.setCellValue("(CRP-002/F4-01)");
-        formRefCell.setCellStyle(dataStyle);
+        formRefCell.setCellStyle(dateStyle);
         
         // Row 4: Empty
         Row emptyRow2 = sheet.createRow(rowNum++);
         
-        // Row 5: Headers
+        // Row 5 (A5): Headers starting from column A
         Row headerRow = sheet.createRow(rowNum++);
         String[] headers = {
-            "", "Sr. No.", "Description of Initiative", "Category", "Initiative No.", 
+            "Sr. No.", "Description of Initiative", "Category", "Initiative No.", 
             "Initiation Date", "Initiative Leader", "Target Date", "Modification or CAPEX Cost", 
             "Current Status", "Expected Savings", "Actual Savings", "Annualized Value FY25-26", "Remarks"
         };
@@ -123,73 +137,73 @@ public class ReportsService {
             headerCell.setCellStyle(headerStyle);
         }
         
-        // Add data rows
+        // Add data rows starting from Row 6 (A6)
         int dataRowNum = 1;
         for (Initiative initiative : initiatives) {
             Row dataRow = sheet.createRow(rowNum++);
             
-            // Sr. No.
-            dataRow.createCell(1).setCellValue(dataRowNum++);
+            // Sr. No. (Column A)
+            dataRow.createCell(0).setCellValue(dataRowNum++);
             
-            // Description of Initiative
-            dataRow.createCell(2).setCellValue(initiative.getTitle() != null ? initiative.getTitle() : "");
+            // Description of Initiative (Column B)
+            dataRow.createCell(1).setCellValue(initiative.getTitle() != null ? initiative.getTitle() : "");
             
-            // Category (Discipline)
-            dataRow.createCell(3).setCellValue(initiative.getDiscipline() != null ? initiative.getDiscipline() : "");
+            // Category (Discipline) (Column C)
+            dataRow.createCell(2).setCellValue(initiative.getDiscipline() != null ? initiative.getDiscipline() : "");
             
-            // Initiative No.
-            dataRow.createCell(4).setCellValue(initiative.getInitiativeNumber() != null ? initiative.getInitiativeNumber() : "");
+            // Initiative No. (Column D)
+            dataRow.createCell(3).setCellValue(initiative.getInitiativeNumber() != null ? initiative.getInitiativeNumber() : "");
             
-            // Initiation Date
+            // Initiation Date (Column E)
             if (initiative.getStartDate() != null) {
-                dataRow.createCell(5).setCellValue(initiative.getStartDate().toString());
+                dataRow.createCell(4).setCellValue(initiative.getStartDate().toString());
             }
             
-            // Initiative Leader (from initiator or created by)
+            // Initiative Leader (from initiator or created by) (Column F)
             String initiativeLeader = "";
             if (initiative.getInitiatorName() != null && !initiative.getInitiatorName().isEmpty()) {
                 initiativeLeader = initiative.getInitiatorName();
             } else if (initiative.getCreatedBy() != null) {
                 initiativeLeader = initiative.getCreatedBy().getFullName();
             }
-            dataRow.createCell(6).setCellValue(initiativeLeader);
+            dataRow.createCell(5).setCellValue(initiativeLeader);
             
-            // Target Date
+            // Target Date (Column G)
             if (initiative.getEndDate() != null) {
-                dataRow.createCell(7).setCellValue(initiative.getEndDate().toString());
+                dataRow.createCell(6).setCellValue(initiative.getEndDate().toString());
             }
             
-            // Modification or CAPEX Cost
+            // Modification or CAPEX Cost (Column H)
             if (initiative.getEstimatedCapex() != null) {
-                dataRow.createCell(8).setCellValue(initiative.getEstimatedCapex().doubleValue());
+                dataRow.createCell(7).setCellValue(initiative.getEstimatedCapex().doubleValue());
             }
             
-            // Current Status
-            dataRow.createCell(9).setCellValue(initiative.getStatus() != null ? initiative.getStatus() : "");
+            // Current Status (Column I)
+            dataRow.createCell(8).setCellValue(initiative.getStatus() != null ? initiative.getStatus() : "");
             
-            // Expected Savings
+            // Expected Savings (Column J)
             if (initiative.getExpectedSavings() != null) {
-                dataRow.createCell(10).setCellValue(initiative.getExpectedSavings().doubleValue());
+                dataRow.createCell(9).setCellValue(initiative.getExpectedSavings().doubleValue());
             }
             
-            // Actual Savings
+            // Actual Savings (Column K)
+            if (initiative.getActualSavings() != null) {
+                dataRow.createCell(10).setCellValue(initiative.getActualSavings().doubleValue());
+            }
+            
+            // Annualized Value (Expected Savings if no actual savings) (Column L)
             if (initiative.getActualSavings() != null) {
                 dataRow.createCell(11).setCellValue(initiative.getActualSavings().doubleValue());
-            }
-            
-            // Annualized Value (Expected Savings if no actual savings)
-            if (initiative.getActualSavings() != null) {
-                dataRow.createCell(12).setCellValue(initiative.getActualSavings().doubleValue());
             } else if (initiative.getExpectedSavings() != null) {
-                dataRow.createCell(12).setCellValue(initiative.getExpectedSavings().doubleValue());
+                dataRow.createCell(11).setCellValue(initiative.getExpectedSavings().doubleValue());
             }
             
-            // Remarks (Current Stage Name)
+            // Remarks (Current Stage Name) (Column M)
             String stageName = getStageName(initiative.getCurrentStage());
-            dataRow.createCell(13).setCellValue(stageName);
+            dataRow.createCell(12).setCellValue(stageName);
             
             // Apply data style to all cells
-            for (int i = 1; i < 14; i++) {
+            for (int i = 0; i < 13; i++) {
                 Cell cell = dataRow.getCell(i);
                 if (cell != null) {
                     cell.setCellStyle(dataStyle);
@@ -197,11 +211,12 @@ public class ReportsService {
             }
         }
         
-        // Add empty rows to match template (minimum 10 rows total)
-        while (rowNum < 11) {
+        // Add empty rows to match template (ensure at least 20 empty rows for data entry)
+        int minRows = Math.max(25, rowNum + 15); // At least 25 rows total
+        while (rowNum < minRows) {
             Row emptyDataRow = sheet.createRow(rowNum++);
             // Create empty cells with borders
-            for (int i = 1; i < 14; i++) {
+            for (int i = 0; i < 13; i++) {
                 Cell emptyCell = emptyDataRow.createCell(i);
                 emptyCell.setCellValue("");
                 emptyCell.setCellStyle(dataStyle);
@@ -279,5 +294,193 @@ public class ReportsService {
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         
         return style;
+    }
+    
+    private CellStyle createDateStyle(XSSFWorkbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setFontHeightInPoints((short) 10);
+        style.setFont(font);
+        style.setAlignment(HorizontalAlignment.LEFT);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        return style;
+    }
+    
+    public ByteArrayOutputStream generateInitiativeForm(String initiativeId) throws IOException {
+        // Get initiative data
+        Long id = Long.parseLong(initiativeId);
+        Initiative initiative = initiativeRepository.findById(id).orElse(null);
+        
+        if (initiative == null) {
+            throw new IllegalArgumentException("Initiative not found with ID: " + initiativeId);
+        }
+        
+        // Create Word document
+        XWPFDocument document = new XWPFDocument();
+        
+        // Add title
+        XWPFParagraph titlePara = document.createParagraph();
+        titlePara.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun titleRun = titlePara.createRun();
+        titleRun.setBold(true);
+        titleRun.setFontSize(16);
+        titleRun.setText("Annexure-I");
+        titleRun.addBreak();
+        titleRun.setText("INITIATIVES APPROVAL FORM");
+        
+        document.createParagraph(); // Empty line
+        
+        // Create main form table
+        XWPFTable formTable = document.createTable();
+        formTable.setWidth("100%");
+        
+        // Remove default row
+        formTable.removeRow(0);
+        
+        // Initiative Title
+        createFormRow(formTable, "Initiative Title:", initiative.getTitle() != null ? initiative.getTitle() : "");
+        
+        // Initiator Name
+        String initiatorName = "";
+        if (initiative.getInitiatorName() != null && !initiative.getInitiatorName().isEmpty()) {
+            initiatorName = initiative.getInitiatorName();
+        } else if (initiative.getCreatedBy() != null) {
+            initiatorName = initiative.getCreatedBy().getFullName();
+        }
+        createFormRow(formTable, "Initiator Name:", initiatorName);
+        
+        // Site
+        createFormRow(formTable, "Site:", initiative.getSite() != null ? initiative.getSite() : "");
+        
+        // Date
+        createFormRow(formTable, "Date:", initiative.getStartDate() != null ? initiative.getStartDate().toString() : "");
+        
+        // Description of Initiative
+        createFormRow(formTable, "Description of Initiative:", initiative.getDescription() != null ? initiative.getDescription() : "Summary of what the initiative entails");
+        
+        // Baseline
+        createFormRow(formTable, "Baseline:", initiative.getBaselineData() != null ? initiative.getBaselineData() : "Annualized basis of last 12 months of un-deviated operational data");
+        
+        // Target
+        createFormRow(formTable, "Target:", initiative.getTargetOutcome() != null ? initiative.getTargetOutcome() : "Time bound specific and measurable desired outcome (e.g., cost savings, efficiency gains)");
+        
+        // Expected Value
+        String expectedValue = "";
+        if (initiative.getExpectedSavings() != null) {
+            expectedValue = "₹" + initiative.getExpectedSavings().toString() + " - Expected value is multiple of Annual financial benefit and percent confidence level of achieving that benefit";
+        } else {
+            expectedValue = "Expected value is multiple of Annual financial benefit and percent confidence level of achieving that benefit";
+        }
+        createFormRow(formTable, "Expected Value:", expectedValue);
+        
+        // 3 Key Assumptions
+        String assumptions = "";
+        if (initiative.getAssumption1() != null || initiative.getAssumption2() != null || initiative.getAssumption3() != null) {
+            assumptions = "1. " + (initiative.getAssumption1() != null ? initiative.getAssumption1() : "Quantum of Processed volume") + "\n";
+            assumptions += "2. " + (initiative.getAssumption2() != null ? initiative.getAssumption2() : "Pricing of baseline") + "\n";
+            assumptions += "3. " + (initiative.getAssumption3() != null ? initiative.getAssumption3() : "Technology or Process continuity");
+        } else {
+            assumptions = "1. Quantum of Processed volume\n2. Pricing of baseline\n3. Technology or Process continuity";
+        }
+        createFormRow(formTable, "3 Key Assumptions:", assumptions);
+        
+        // Estimated CAPEX
+        String capex = "";
+        if (initiative.getEstimatedCapex() != null) {
+            capex = "₹" + initiative.getEstimatedCapex().toString();
+        }
+        createFormRow(formTable, "Estimated CAPEX:", capex);
+        
+        document.createParagraph(); // Empty line
+        
+        // Add note
+        XWPFParagraph notePara = document.createParagraph();
+        XWPFRun noteRun = notePara.createRun();
+        noteRun.setItalic(true);
+        noteRun.setFontSize(10);
+        noteRun.setText("(*Wherever required corresponding data to be attached.)");
+        
+        document.createParagraph(); // Empty line
+        
+        // Create signature table
+        XWPFTable signatureTable = document.createTable();
+        signatureTable.setWidth("100%");
+        
+        // Remove default row
+        signatureTable.removeRow(0);
+        
+        // Header row
+        XWPFTableRow headerRow = signatureTable.createRow();
+        setCellText(headerRow.getCell(0), "", true);
+        setCellText(headerRow.addNewTableCell(), "Name", true);
+        setCellText(headerRow.addNewTableCell(), "Designation", true);
+        setCellText(headerRow.addNewTableCell(), "Sign", true);
+        setCellText(headerRow.addNewTableCell(), "Date", true);
+        
+        // Initiated by row
+        XWPFTableRow initiatedRow = signatureTable.createRow();
+        setCellText(initiatedRow.getCell(0), "Initiated by", true);
+        setCellText(initiatedRow.getCell(1), initiatorName, false); // Fill with initiator name
+        setCellText(initiatedRow.getCell(2), "Site TSD", false);
+        setCellText(initiatedRow.getCell(3), "", false);
+        setCellText(initiatedRow.getCell(4), "", false);
+        
+        // Reviewed by row
+        XWPFTableRow reviewedRow = signatureTable.createRow();
+        setCellText(reviewedRow.getCell(0), "Reviewed by", true);
+        setCellText(reviewedRow.getCell(1), "", false);
+        setCellText(reviewedRow.getCell(2), "Unit Head", false);
+        setCellText(reviewedRow.getCell(3), "", false);
+        setCellText(reviewedRow.getCell(4), "", false);
+        
+        // Approved by row
+        XWPFTableRow approvedRow = signatureTable.createRow();
+        setCellText(approvedRow.getCell(0), "Approved by", true);
+        setCellText(approvedRow.getCell(1), "", false);
+        setCellText(approvedRow.getCell(2), "Corp. TSD", false);
+        setCellText(approvedRow.getCell(3), "", false);
+        setCellText(approvedRow.getCell(4), "", false);
+        
+        // Another approved by row
+        XWPFTableRow approved2Row = signatureTable.createRow();
+        setCellText(approved2Row.getCell(0), "Approved by", true);
+        setCellText(approved2Row.getCell(1), "", false);
+        setCellText(approved2Row.getCell(2), "CMO", false);
+        setCellText(approved2Row.getCell(3), "", false);
+        setCellText(approved2Row.getCell(4), "", false);
+        
+        // Write to output stream
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        document.write(outputStream);
+        document.close();
+        
+        return outputStream;
+    }
+    
+    private void createFormRow(XWPFTable table, String label, String value) {
+        XWPFTableRow row = table.createRow();
+        
+        // Label cell (left column) - blue background
+        XWPFTableCell labelCell = row.getCell(0);
+        setCellText(labelCell, label, true);
+        labelCell.setColor("4F81BD"); // Blue background
+        
+        // Value cell (right column)
+        XWPFTableCell valueCell = row.getCell(1);
+        if (valueCell == null) {
+            valueCell = row.addNewTableCell();
+        }
+        setCellText(valueCell, value, false);
+    }
+    
+    private void setCellText(XWPFTableCell cell, String text, boolean bold) {
+        XWPFParagraph para = cell.getParagraphs().get(0);
+        XWPFRun run = para.createRun();
+        run.setText(text);
+        run.setBold(bold);
+        if (bold) {
+            run.setColor("FFFFFF"); // White text for headers
+        }
+        run.setFontSize(10);
     }
 }

@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Download, Calendar, TrendingUp, FileText, Filter } from "lucide-react";
+import { reportsAPI } from "@/lib/api";
 
 interface ReportsProps {
   user: User;
@@ -58,28 +59,16 @@ export default function Reports({ user }: ReportsProps) {
   const handleDownloadReport = async (reportType: string) => {
     if (reportType === 'Detailed Report (Excel)') {
       try {
-        // Get the backend URL from environment
-        const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+        // Use the centralized API with proper authentication
+        const filename = await reportsAPI.downloadDetailedExcel({
+          site: selectedSite,
+          year: new Date().getFullYear().toString()
+        });
         
-        // Prepare query parameters
-        const params = new URLSearchParams();
-        if (selectedSite !== 'all') {
-          params.append('site', selectedSite);
-        }
-        // Add current year for filtering
-        params.append('year', new Date().getFullYear().toString());
-        
-        const url = `${backendUrl}/api/reports/export/detailed-excel?${params.toString()}`;
-        
-        // Create a temporary link to trigger download
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', ''); // Filename will be set by backend
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        console.log(`Downloading detailed Excel report for ${selectedSite} site(s)`);
+        console.log(`Successfully downloaded detailed Excel report: ${filename} for ${selectedSite} site(s)`);
+        // Optional: Show success message instead of alert
+        // You can replace this with a toast notification if you have one
+        alert(`Excel report "${filename}" downloaded successfully!`);
       } catch (error) {
         console.error('Error downloading Excel report:', error);
         alert('Failed to download Excel report. Please try again.');

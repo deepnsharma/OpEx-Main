@@ -14,7 +14,8 @@ import {
   Eye,
   Edit,
   Clock,
-  Search
+  Search,
+  Download
 } from "lucide-react";
 import { mockInitiatives, paginateArray, User } from "@/lib/mockData";
 import { useInitiatives } from "@/hooks/useInitiatives";
@@ -22,6 +23,7 @@ import { useProgressPercentage, useCurrentPendingStage } from "@/hooks/useWorkfl
 import InitiativeModal from "@/components/modals/InitiativeModal";
 import InitiativeProgress from "@/components/initiative/InitiativeProgress";
 import CurrentStage from "@/components/initiative/CurrentStage";
+import { reportsAPI } from "@/lib/api";
 
 interface Initiative {
   id: string | number;
@@ -100,13 +102,14 @@ export default function Initiatives({ user }: InitiativesProps) {
         currentStageName: item.currentStageName, // New field from backend API
         requiresMoc: item.requiresMoc,
         requiresCapex: item.requiresCapex,
-        createdByName: item.createdByName,
-        createdByEmail: item.createdByEmail,
-        createdBy: item.createdBy, // User ID for fetching user details
-        initiatorName: item.initiatorName // Name of the person who initiated the initiative
+        createdByName: item.createdBy?.fullName || item.createdByName,
+        createdByEmail: item.createdBy?.email || item.createdByEmail,
+        initiatorName: item.initiatorName,
+        createdBy: item.createdBy?.id || item.createdBy,
       }));
+    } else {
+      return mockInitiatives;
     }
-    return mockInitiatives;
   }, [apiInitiatives]);
 
   const handleViewInitiative = (initiative: Initiative) => {
@@ -130,11 +133,24 @@ export default function Initiatives({ user }: InitiativesProps) {
     handleCloseModal();
   };
 
+  const handleDownloadForm = async (initiative: Initiative) => {
+    try {
+      const filename = await reportsAPI.downloadInitiativeForm(initiative.id.toString());
+      console.log(`Successfully downloaded initiative form: ${filename} for ${initiative.initiativeNumber || initiative.title}`);
+      // Optional: Show success message instead of alert
+      alert(`Initiative form "${filename}" downloaded successfully!`);
+    } catch (error) {
+      console.error('Error downloading initiative form:', error);
+      alert('Failed to download initiative form. Please try again.');
+    }
+  };
+
   // Filter initiatives
   const filteredInitiatives = initiatives.filter((initiative: Initiative) => {
     const matchesStatus = statusFilter === "all" || initiative.status.toLowerCase().includes(statusFilter);
     const matchesSite = siteFilter === "all" || initiative.site === siteFilter;
     const matchesSearch = searchTerm === "" || 
+      (initiative.title && initiative.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (initiative.initiativeNumber && initiative.initiativeNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (initiative.id && initiative.id.toString().toLowerCase().includes(searchTerm.toLowerCase()));
     
@@ -176,27 +192,24 @@ export default function Initiatives({ user }: InitiativesProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">My Initiatives</h1>
-          <p className="text-muted-foreground">View and manage all your operational excellence initiatives</p>
-        </div>
-        <Badge variant="outline" className="text-sm">
-          {paginatedData.totalItems} Total Initiatives
-        </Badge>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            Initiative Management
+          </CardTitle>
+          <CardDescription>
+            Track and manage operational excellence initiatives across all sites
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-      {/* Filters and Search */}
+      {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Filters:</span>
-            </div>
-            
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+            <div className="relative flex-1 min-w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder="Search initiatives..."
                 value={searchTerm}
@@ -280,7 +293,7 @@ export default function Initiatives({ user }: InitiativesProps) {
                      <TableHead className="w-28">Current Stage</TableHead>
                      <TableHead className="w-20">Progress</TableHead>
                      <TableHead className="w-24">Last Updated</TableHead>
-                     <TableHead className="w-32">Actions</TableHead>
+                     <TableHead className="w-48">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -334,7 +347,7 @@ export default function Initiatives({ user }: InitiativesProps) {
                         </div>
                       </TableCell>
                       <TableCell className="p-3">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                           <Button 
                             size="sm" 
                             variant="outline" 
@@ -352,6 +365,16 @@ export default function Initiatives({ user }: InitiativesProps) {
                           >
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-8 px-3 text-xs hover:bg-green-600 hover:text-white transition-colors min-w-[70px]"
+                            onClick={() => handleDownloadForm(initiative)}
+                            title="Download Initiative Form"
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            Download
                           </Button>
                         </div>
                       </TableCell>
@@ -415,7 +438,7 @@ export default function Initiatives({ user }: InitiativesProps) {
                       <Calendar className="h-3 w-3" />
                       <span>Updated: {initiative.lastUpdated}</span>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <Button 
                         size="sm" 
                         variant="outline" 
@@ -434,6 +457,16 @@ export default function Initiatives({ user }: InitiativesProps) {
                         <Edit className="h-3 w-3 mr-1" />
                         Edit
                       </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-7 px-2 text-xs hover:bg-green-600 hover:text-white min-w-[60px]"
+                        onClick={() => handleDownloadForm(initiative)}
+                        title="Download Form"
+                      >
+                        <Download className="h-3 w-3 mr-1" />
+                        Download
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -447,49 +480,38 @@ export default function Initiatives({ user }: InitiativesProps) {
               Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, paginatedData.totalItems)} of {paginatedData.totalItems} initiatives
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={!paginatedData.hasPreviousPage}
+                disabled={currentPage === 1}
+                className="h-8 px-3"
               >
                 <ChevronLeft className="h-4 w-4" />
                 Previous
               </Button>
               
               <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, paginatedData.totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (paginatedData.totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= paginatedData.totalPages - 2) {
-                    pageNum = paginatedData.totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(pageNum)}
-                      className="w-8 h-8 p-0"
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
+                {Array.from({ length: paginatedData.totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(page)}
+                    className="h-8 w-8 p-0"
+                  >
+                    {page}
+                  </Button>
+                ))}
               </div>
               
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, paginatedData.totalPages))}
-                disabled={!paginatedData.hasNextPage}
+                disabled={currentPage === paginatedData.totalPages}
+                className="h-8 px-3"
               >
                 Next
                 <ChevronRight className="h-4 w-4" />
@@ -498,65 +520,6 @@ export default function Initiatives({ user }: InitiativesProps) {
           </div>
         </CardContent>
       </Card>
-
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-warning" />
-              <div>
-                <p className="text-sm font-medium">In Progress</p>
-                <p className="text-2xl font-bold text-warning">
-                  {filteredInitiatives.filter((i: Initiative) => i.status.toLowerCase().includes('progress')).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-primary" />
-              <div>
-                <p className="text-sm font-medium">Under Review</p>
-                <p className="text-2xl font-bold text-primary">
-                  {filteredInitiatives.filter((i: Initiative) => i.status.toLowerCase().includes('review')).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-success" />
-              <div>
-                <p className="text-sm font-medium">This Month</p>
-                <p className="text-2xl font-bold text-success">
-                  {filteredInitiatives.filter((i: Initiative) => i.submittedDate?.includes('2025-01')).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Badge className="h-4 w-4 text-destructive" />
-              <div>
-                <p className="text-sm font-medium">High Priority</p>
-                <p className="text-2xl font-bold text-destructive">
-                  {filteredInitiatives.filter((i: Initiative) => i.priority === 'High').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Initiative Modal */}
       <InitiativeModal
