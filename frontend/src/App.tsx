@@ -126,7 +126,7 @@ const AppRoutes = () => {
           </AppLayout>
         </ProtectedRoute>
       } />
-      
+               {/* <p className="font-medium">₹{initiative.expectedSavings || 0}K</p> */}
       <Route path="/workflow" element={
         <ProtectedRoute>
           <AppLayout user={user!} onLogout={logout}>

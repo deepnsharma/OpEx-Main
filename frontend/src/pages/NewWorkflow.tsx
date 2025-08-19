@@ -3,7 +3,6 @@ import { User } from "@/lib/mockData";
 import { useInitiatives } from "@/hooks/useInitiatives";
 import { 
   useWorkflowTransactions, 
-  usePendingTransactionsByRole, 
   useProcessStageAction 
 } from "@/hooks/useWorkflowTransactions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +14,7 @@ import { CheckCircle, XCircle, Clock, ArrowLeft, User as UserIcon } from "lucide
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
 import WorkflowStageModal from "@/components/workflow/WorkflowStageModal";
+import { DynamicWorkflowTracker } from "@/components/workflow/DynamicWorkflowTracker";
 
 interface NewWorkflowProps {
   user: User;
@@ -29,7 +29,6 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
   
   const { data: initiativesData } = useInitiatives();
   const { data: workflowTransactions = [], refetch: refetchTransactions } = useWorkflowTransactions(selectedInitiative || 0);
-  const { data: pendingTransactions = [] } = usePendingTransactionsByRole(user.role || "");
   const processStageAction = useProcessStageAction();
   
   // Mock data fallback
@@ -96,10 +95,12 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'approved': return 'bg-green-500 text-white';
-      case 'rejected': return 'bg-red-500 text-white';
-      case 'pending': return 'bg-yellow-500 text-black';
-      default: return 'bg-gray-500 text-white';
+      case 'approved': return 'bg-success/10 text-success border-success/20';
+      case 'rejected': return 'bg-destructive/10 text-destructive border-destructive/20';
+      case 'pending': return 'bg-warning/10 text-warning border-warning/20';
+      case 'completed': return 'bg-success/10 text-success border-success/20';
+      case 'in_progress': return 'bg-primary/10 text-primary border-primary/20';
+      default: return 'bg-muted/10 text-muted-foreground border-muted/20';
     }
   };
 
@@ -118,37 +119,52 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Workflow Management</h1>
-        <p className="text-muted-foreground">Manage approval workflows with role-based permissions</p>
+      <div className="bg-gradient-to-r from-background via-background to-primary/5 -m-6 p-6 mb-6 border-b">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Workflow Management</h1>
+            <p className="text-muted-foreground font-medium">Manage approval workflows with role-based permissions</p>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="stages" className="w-full">
-        <TabsList>
-          <TabsTrigger value="stages">Initiative Workflow</TabsTrigger>
-          <TabsTrigger value="pending">
-            My Pending Actions ({pendingTransactions.length})
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-muted/30">
+          <TabsTrigger value="stages" className="font-medium">Initiative Workflow</TabsTrigger>
+          <TabsTrigger value="dynamic" className="font-medium">View Workflow</TabsTrigger>
         </TabsList>
 
         <TabsContent value="stages" className="space-y-6">
           {!selectedInitiative ? (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold">Select Initiative</h2>
+              <div className="text-center py-8">
+                <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10">
+                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-foreground mb-2">Select Initiative</h2>
+                <p className="text-muted-foreground">Choose an initiative to manage its workflow stages</p>
+              </div>
               
               <div className="space-y-4">
                 {paginatedInitiatives.map((initiative: any) => (
                   <Card
                     key={initiative.id}
-                    className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20"
+                    className="cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border hover:border-primary/30 bg-gradient-to-r from-card to-card/50"
                     onClick={() => setSelectedInitiative(initiative.id)}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1 space-y-2">
+                        <div className="flex-1 space-y-3">
                           <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold">{initiative.initiativeNumber || initiative.title}</h3>
-                            <Badge className={getStatusColor(initiative.status)}>
+                            <h3 className="text-lg font-bold text-foreground">{initiative.initiativeNumber || initiative.title}</h3>
+                            <Badge className={`${getStatusColor(initiative.status)} font-semibold`}>
                               {initiative.status}
                             </Badge>
                           </div>
@@ -168,7 +184,7 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
                             </div>
                             <div>
                               <span className="text-muted-foreground">Expected Savings:</span>
-                              <p className="font-medium">${initiative.expectedSavings || 0}K</p>
+                              <p className="font-medium">₹{initiative.expectedSavings || 0}K</p>
                             </div>
                           </div>
                           
@@ -182,8 +198,13 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
                         </div>
                         
                         <div className="ml-6">
-                          <Button variant="outline" size="sm">
-                            View Workflow →
+                          <Button 
+                            variant="default" 
+                            size="sm" 
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4 py-2 rounded-lg shadow-md transition-all duration-200"
+                          >
+                            View Workflow
+                            <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
                           </Button>
                         </div>
                       </div>
@@ -226,45 +247,64 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <Button variant="outline" onClick={() => setSelectedInitiative(null)}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Initiatives
+              <div className="flex items-center gap-6">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSelectedInitiative(null)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="font-medium">Back to Initiatives</span>
                 </Button>
-                <div>
-                  <h2 className="text-2xl font-semibold">{selectedInitiativeData?.title}</h2>
-                  <p className="text-muted-foreground">Workflow Stages</p>
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-1 bg-gradient-to-b from-primary to-primary/60 rounded-full"></div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-foreground">
+                      {selectedInitiativeData?.initiativeNumber || selectedInitiativeData?.title || 'Initiative'}
+                    </h2>
+                    <p className="text-sm text-muted-foreground font-medium">Workflow Stages</p>
+                  </div>
                 </div>
               </div>
               
               {workflowTransactions.length === 0 ? (
-                <Card>
-                  <CardContent className="p-6 text-center text-muted-foreground">
-                    No workflow stages found for this initiative.
+                <Card className="border-dashed">
+                  <CardContent className="p-12 text-center">
+                    <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-muted">
+                      <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No Workflow Stages</h3>
+                    <p className="text-muted-foreground">No workflow stages found for this initiative.</p>
                   </CardContent>
                 </Card>
               ) : (
                 <div className="grid gap-6">
                   {workflowTransactions.map((transaction: any) => (
-                    <Card key={transaction.id} className="relative">
-                      <CardHeader>
+                    <Card key={transaction.id} className="relative overflow-hidden border-l-4 border-l-primary/30 hover:shadow-lg transition-all duration-200">
+                      <CardHeader className="bg-gradient-to-r from-background to-primary/5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary font-bold text-lg">
+                            <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold text-lg shadow-lg">
                               {transaction.stageNumber}
                             </div>
                             <div>
-                              <CardTitle className="text-xl">
+                              <CardTitle className="text-xl text-foreground">
                                 {transaction.stageName}
                               </CardTitle>
-                              <p className="text-sm text-muted-foreground">
-                                Required Role: <span className="font-medium">{getRoleCodeDescription(transaction.requiredRole)}</span>
-                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-muted-foreground">Required Role:</span>
+                                <Badge variant="secondary" className="text-xs font-medium">
+                                  {getRoleCodeDescription(transaction.requiredRole)}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
                             {getStatusIcon(transaction.approveStatus)}
-                            <Badge className={getStatusColor(transaction.approveStatus)}>
+                            <Badge className={`${getStatusColor(transaction.approveStatus)} font-semibold`}>
                               {transaction.approveStatus?.toUpperCase()}
                             </Badge>
                           </div>
@@ -334,8 +374,11 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
                                 setSelectedTransaction(transaction);
                                 setIsModalOpen(true);
                               }}
-                              className="w-full"
+                              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 rounded-lg shadow-md transition-all duration-200"
                             >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
                               Process This Stage
                             </Button>
                           </div>
@@ -349,65 +392,128 @@ export default function NewWorkflow({ user }: NewWorkflowProps) {
           )}
         </TabsContent>
 
-        <TabsContent value="pending" className="space-y-4">
-          <div>
-            <h2 className="text-2xl font-semibold">My Pending Actions</h2>
-            <p className="text-muted-foreground">Stages waiting for your approval ({user.role})</p>
-          </div>
-          
-          {pendingTransactions.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Pending Actions</h3>
-                <p className="text-muted-foreground">All caught up! No stages require your approval at this time.</p>
-              </CardContent>
-            </Card>
+        <TabsContent value="dynamic" className="space-y-6">
+          {!selectedInitiative ? (
+            <div className="space-y-6">
+              <div className="text-center py-8">
+                <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10">
+                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-foreground mb-2">Select Initiative for Dynamic Workflow</h2>
+                <p className="text-muted-foreground">Choose an initiative to view its dynamic role-based workflow progression</p>
+              </div>
+              
+              <div className="space-y-4">
+                {paginatedInitiatives.map((initiative: any) => (
+                  <Card
+                    key={initiative.id}
+                    className="cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border hover:border-primary/30 bg-gradient-to-r from-card to-card/50"
+                    onClick={() => setSelectedInitiative(initiative.id)}
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-foreground">{initiative.initiativeNumber || initiative.title}</h3>
+                            <Badge className={`${getStatusColor(initiative.status)} font-semibold`}>
+                              {initiative.status}
+                            </Badge>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">Site:</span>
+                              <p className="font-medium">{initiative.site}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Initiative Lead:</span>
+                              <p className="font-medium">{initiative.initiativeLead || 'Not Assigned'}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Current Stage:</span>
+                              <p className="font-medium">Stage {initiative.currentStage || 1}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Expected Savings:</span>
+                              <p className="font-medium">₹{initiative.expectedSavings || 0}K</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="ml-6">
+                          <Button 
+                            variant="default" 
+                            size="sm" 
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4 py-2 rounded-lg shadow-md transition-all duration-200"
+                          >
+                            View Dynamic Workflow
+                            <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#" 
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: totalPages }, (_, i) => (
+                      <PaginationItem key={i + 1}>
+                        <PaginationLink 
+                          href="#" 
+                          isActive={currentPage === i + 1}
+                          onClick={() => setCurrentPage(i + 1)}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#" 
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </div>
           ) : (
-            <div className="grid gap-6">
-              {pendingTransactions.map((transaction: any) => (
-                <Card key={transaction.id} className="border-l-4 border-l-yellow-500">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-xl">
-                          Initiative ID: {transaction.initiativeId}
-                        </CardTitle>
-                        <p className="text-lg text-muted-foreground">
-                          Stage {transaction.stageNumber}: {transaction.stageName}
-                        </p>
-                      </div>
-                      <Badge className="bg-yellow-500 text-black">PENDING</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm bg-muted p-4 rounded-lg">
-                      <div>
-                        <span className="font-medium text-muted-foreground">Site:</span>
-                        <p className="font-medium">{transaction.site}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-muted-foreground">Required Role:</span>
-                        <p className="font-medium">{getRoleCodeDescription(transaction.requiredRole)}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-muted-foreground">Created:</span>
-                        <p className="font-medium">{new Date(transaction.createdAt).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                    
-                    <Button 
-                      onClick={() => {
-                        setSelectedTransaction(transaction);
-                        setIsModalOpen(true);
-                      }}
-                      className="w-full"
-                    >
-                      Process This Stage
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="space-y-6">
+              <div className="flex items-center gap-6">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSelectedInitiative(null)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="font-medium">Back to Initiatives</span>
+                </Button>
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-1 bg-gradient-to-b from-primary to-primary/60 rounded-full"></div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-foreground">
+                      {selectedInitiativeData?.initiativeNumber || selectedInitiativeData?.title || 'Initiative'}
+                    </h2>
+                    <p className="text-sm text-muted-foreground font-medium">Dynamic Role-Based Workflow System</p>
+                  </div>
+                </div>
+              </div>
+              
+              <DynamicWorkflowTracker initiativeId={selectedInitiative} />
             </div>
           )}
         </TabsContent>

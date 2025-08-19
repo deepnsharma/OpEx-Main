@@ -258,12 +258,7 @@ export default function AuthPage({ onLogin }: AuthProps) {
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-700 flex items-center gap-2">
-                      <Building2 className="w-4 h-4" />
-                      Demo credentials: john.lead@company.com / password123
-                    </p>
-                  </div>
+              
                 </TabsContent>
 
                 <TabsContent value="signup" className="space-y-5 mt-0">
@@ -274,7 +269,7 @@ export default function AuthPage({ onLogin }: AuthProps) {
                         <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-400" />
                         <Input
                           id="fullName"
-                          placeholder="John Doe"
+                          placeholder="Deep Sharma"
                           className="pl-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-colors duration-200"
                           value={formData.fullName}
                           onChange={(e) => handleInputChange("fullName", e.target.value)}
@@ -290,7 +285,7 @@ export default function AuthPage({ onLogin }: AuthProps) {
                         <Input
                           id="email"
                           type="email"
-                          placeholder="john.lead@company.com"
+                          placeholder="sharma@godeepak.com"
                           className="pl-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-colors duration-200"
                           value={formData.email}
                           onChange={(e) => handleInputChange("email", e.target.value)}

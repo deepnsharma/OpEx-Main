@@ -48,6 +48,7 @@ interface Initiative {
   createdByName?: string;
   createdByEmail?: string;
   createdBy?: number | string; // User ID who created the initiative
+  initiatorName?: string; // Name of the person who initiated the initiative
 }
 
 interface InitiativesProps {
@@ -100,7 +101,8 @@ export default function Initiatives({ user }: InitiativesProps) {
         requiresCapex: item.requiresCapex,
         createdByName: item.createdByName,
         createdByEmail: item.createdByEmail,
-        createdBy: item.createdBy // User ID for fetching user details
+        createdBy: item.createdBy, // User ID for fetching user details
+        initiatorName: item.initiatorName // Name of the person who initiated the initiative
       }));
     }
     return mockInitiatives;
